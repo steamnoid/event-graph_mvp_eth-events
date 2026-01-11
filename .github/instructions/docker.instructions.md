@@ -160,8 +160,8 @@ Examples:
 
 ## 12. Copilot constraints
 
-Copilot usage remains ASK MODE ONLY.
-All code is typed manually by the human.
+Copilot operates in strict agent mode.
+It may edit files and run commands/tools autonomously, while respecting the project rules in the instruction set.
 
 ---
 

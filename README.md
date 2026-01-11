@@ -79,6 +79,24 @@ Cypher invariants & analysis
 
 ---
 
+## Configuration
+
+This project fetches Ethereum mainnet logs via `ALCHEMY_URL`.
+
+- Copy [docker/.env.example](docker/.env.example) to `docker/.env`
+- Set `ALCHEMY_URL` in `docker/.env` to your Alchemy Mainnet HTTPS URL
+- Do not commit `docker/.env` (it is ignored by `.gitignore`)
+
+`docker compose -f docker/docker-compose.yml` reads variables from `docker/.env`.
+
+---
+
 ## Status
 
 This is an **MVP / research prototype**.
+
+### Copilot workflow
+
+This repo uses **strict TDD** (Red → Green → Refactor) and GitHub Copilot operates in **strict agent mode** (it may edit files and run the smallest relevant test commands).
+
+docker compose exec airflow-webserver airflow users create --username admin --firstname Airflow --lastname Admin --role Admin --email admin@example.com --password admin

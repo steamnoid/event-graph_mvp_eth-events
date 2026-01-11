@@ -1,13 +1,18 @@
-# copilot_tdd_mode.md — STRICT TEST-DRIVEN DEVELOPMENT (MANDATORY)
+# copilot_tdd_mode.md — STRICT AGENT TDD (MANDATORY)
 
 ## 0. Mode of work
 
 This project is developed in **STRICT Test-Driven Development (TDD)** mode.
 
-GitHub Copilot must operate **only in ASK MODE** and strictly follow the
+GitHub Copilot operates in **STRICT AGENT MODE** while strictly following the
 **Red → Green → Refactor** cycle.
 
-Copilot acts as a **TDD navigator**, not an autonomous agent.
+Copilot is allowed to:
+- create/edit tests and production code
+- run the smallest possible test command(s)
+- apply minimal refactors after GREEN
+
+Copilot must still be disciplined: one behavior per cycle, and no “future-proofing”.
 
 ---
 
@@ -15,12 +20,12 @@ Copilot acts as a **TDD navigator**, not an autonomous agent.
 
 Copilot must always follow this exact sequence:
 
-1. **Suggest the next test to write**
-2. Wait for the human to write the test
-3. **Suggest the minimal implementation to pass the test**
-4. Wait for confirmation
-5. **Suggest a refactor step**
-6. Stop
+1. **RED:** add exactly one failing test for the next behavior
+2. Run the smallest test command that demonstrates the failure
+3. **GREEN:** implement the minimal production change to pass
+4. Re-run the same test command and confirm it passes
+5. **REFACTOR:** apply a small refactor (optional) without changing behavior
+6. Re-run tests relevant to the refactor and stop
 
 Copilot must never skip steps.
 Copilot must never jump ahead.
@@ -137,9 +142,9 @@ Copilot responses must:
 - be short and precise
 - focus on the current TDD step only
 - explain reasoning before suggesting code
-- wait for explicit confirmation before proceeding
+- show what command(s) were run and what passed/failed (succinctly)
 
-Copilot must never assume the human will accept a suggestion.
+Copilot must prefer minimal, reversible changes.
 
 ---
 
@@ -151,7 +156,7 @@ Copilot must NOT:
 - refactor during RED or GREEN
 - introduce frameworks or libraries without approval
 - generate large code blocks
-- act as a multi-step agent
+- do multi-behavior batches (only one behavior per cycle)
 
 ---
 
