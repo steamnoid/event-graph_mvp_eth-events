@@ -1,7 +1,7 @@
-prototype/docker/logs
-prototype/docker/neo4j/data
-prototype/docker/neo4j/logs
-prototype/docker/postgres/data
+__prototype/docker/logs
+__prototype/docker/neo4j/data
+__prototype/docker/neo4j/logs
+__prototype/docker/postgres/data
 
 docker/logs
 docker/neo4j/data
