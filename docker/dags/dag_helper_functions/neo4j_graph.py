@@ -163,28 +163,50 @@ def write_events_with_edges(events: Sequence[Dict], edges: Iterable[Tuple[str, s
         driver.close()
 
 
-def cleanup_run(run_id: str) -> None:
-    """Delete a run and any orphaned events not included by any run."""
-    uri, user, password = _neo4j_config()
+def get_causes_coverage_for_run(run_id: str) -> Tuple[int, int, int]:
+    """Return (total_events, events_with_causes, causes_edges) for a run.
 
+    Counts are restricted to events included in the given run_id.
+    """
+    if not run_id:
+        raise ValueError("run_id is required")
+
+    uri, user, password = _neo4j_config()
     driver = GraphDatabase.driver(uri, auth=(user, password))
     try:
         with driver.session() as session:
-            session.run(
+            totals = session.run(
                 """
-                MATCH (r:Run {run_id: $run_id})
-                DETACH DELETE r
+                MATCH (r:Run {run_id: $run_id})-[:INCLUDES]->(e:Event)
+                WITH collect(e) AS es
+                UNWIND es AS e
+                OPTIONAL MATCH (e)-[out:CAUSES]->(o:Event)
+                WHERE o IN es
+                WITH es, e, count(o) AS out_c
+                OPTIONAL MATCH (i:Event)-[:CAUSES]->(e)
+                WHERE i IN es
+                WITH es, e, out_c, count(i) AS in_c
+                WITH es, sum(CASE WHEN (out_c + in_c) > 0 THEN 1 ELSE 0 END) AS events_with_causes
+                RETURN size(es) AS total_events,
+                       events_with_causes AS events_with_causes
                 """,
                 run_id=run_id,
-            )
+            ).single()
+            if totals is None:
+                return 0, 0, 0
 
-            session.run(
+            rels = session.run(
                 """
-                MATCH (e:Event)
-                WHERE NOT (:Run)-[:INCLUDES]->(e)
-                DETACH DELETE e
-                """
-            )
+                MATCH (r:Run {run_id: $run_id})-[:INCLUDES]->(a:Event)
+                MATCH (r)-[:INCLUDES]->(b:Event)
+                MATCH (a)-[rel:CAUSES]->(b)
+                RETURN count(rel) AS causes_edges
+                """,
+                run_id=run_id,
+            ).single()
+            causes_edges = int(rels["causes_edges"]) if rels is not None else 0
+
+            return int(totals["total_events"]), int(totals["events_with_causes"]), causes_edges
     finally:
         driver.close()
 

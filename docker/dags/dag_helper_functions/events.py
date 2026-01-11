@@ -8,6 +8,8 @@ Key outputs are JSON-serializable dictionaries suitable for Airflow TaskFlow XCo
 
 from typing import Dict, List, Optional, Tuple
 
+from eth_abi import decode as abi_decode
+
 from web3 import HTTPProvider, Web3
 
 
@@ -43,6 +45,8 @@ def _event_signature_map() -> Dict[str, str]:
 
 _SIGNATURE_TO_NAME = _event_signature_map()
 
+_UNISWAP_V2_SWAP_TOPIC0 = Web3.keccak(text="Swap(address,uint256,uint256,uint256,uint256,address)").hex()
+
 
 def _lookup_event_name(log: Dict) -> Optional[str]:
     """Return a human-readable event name for a raw log.
@@ -66,6 +70,56 @@ def _event_id(tx_hash: Optional[str], log_index: Optional[int]) -> Optional[str]
     if not tx_hash or log_index is None:
         return None
     return f"{tx_hash}:{log_index}"
+
+
+def _as_bytes(value) -> bytes:
+    if value is None:
+        return b""
+    if isinstance(value, (bytes, bytearray)):
+        return bytes(value)
+    if isinstance(value, str):
+        hex_str = value[2:] if value.startswith("0x") else value
+        return bytes.fromhex(hex_str)
+    return bytes(value)
+
+
+def _topic_to_checksum_address(topic) -> str:
+    hex_str = topic.hex() if hasattr(topic, "hex") else str(topic)
+    hex_str = hex_str[2:] if hex_str.startswith("0x") else hex_str
+    return Web3.to_checksum_address("0x" + hex_str[-40:])
+
+
+def _decode_known_log(log: Dict) -> Optional[Dict]:
+    """Decode a small set of known events into structured fields.
+
+    For the MVP we keep this intentionally minimal and deterministic.
+    """
+    topics = log.get("topics") or []
+    if len(topics) < 3:
+        return None
+
+    topic0 = topics[0].hex() if hasattr(topics[0], "hex") else str(topics[0])
+    if topic0 != _UNISWAP_V2_SWAP_TOPIC0:
+        return None
+
+    # Uniswap V2 Swap(address indexed sender, uint256,uint256,uint256,uint256, address indexed to)
+
+    data_bytes = _as_bytes(log.get("data"))
+    if not data_bytes:
+        return None
+
+    amount0_in, amount1_in, amount0_out, amount1_out = abi_decode(
+        ["uint256", "uint256", "uint256", "uint256"],
+        data_bytes,
+    )
+    return {
+        "sender": _topic_to_checksum_address(topics[1]),
+        "to": _topic_to_checksum_address(topics[2]),
+        "amount0In": int(amount0_in),
+        "amount1In": int(amount1_in),
+        "amount0Out": int(amount0_out),
+        "amount1Out": int(amount1_out),
+    }
 
 
 def _normalize_log(log: Dict) -> Dict:
@@ -105,6 +159,9 @@ def _normalize_log(log: Dict) -> Dict:
         "topics": [t.hex() for t in topics],
         "data": data_hex,
 
+        # Structured decoding for known signatures (optional)
+        "decoded": _decode_known_log(log),
+
         # Keep original log for now (not JSON-safe, but useful during exploration)
         # "raw": log,
     }
@@ -123,6 +180,29 @@ def validate_block_range(from_block: int, to_block: int) -> Tuple[int, int]:
         raise ValueError("from_block/to_block must be non-negative")
     if from_block > to_block:
         raise ValueError("from_block must be <= to_block")
+    return int(from_block), int(to_block)
+
+
+def compute_latest_block_range(to_block: int, latest_blocks: int) -> Tuple[int, int]:
+    """Compute an inclusive [from_block, to_block] range for the last N blocks.
+
+    This is pure logic so it can be unit-tested without Web3.
+
+    Args:
+        to_block: Current chain tip (inclusive).
+        latest_blocks: Number of latest blocks to include.
+
+    Returns:
+        (from_block, to_block) as integers.
+    """
+    if not isinstance(to_block, int) or not isinstance(latest_blocks, int):
+        raise TypeError("to_block and latest_blocks must be integers")
+    if to_block < 0:
+        raise ValueError("to_block must be non-negative")
+    if latest_blocks <= 0:
+        raise ValueError("latest_blocks must be a positive integer")
+
+    from_block = max(0, to_block - latest_blocks + 1)
     return int(from_block), int(to_block)
 
 
@@ -170,3 +250,91 @@ def fetch_events_in_block_range(
 
     events = [_normalize_log(log) for log in logs]
     return _sort_events_in_block_order(events)
+
+
+def fetch_latest_events_by_log_count(
+    contract_address: str,
+    provider_url: str,
+    to_block: int,
+    logs_number: int,
+    chunk_size: int = 10_000,
+    max_scan_blocks: Optional[int] = None,
+) -> List[Dict]:
+    """Fetch the latest N logs by scanning backward in fixed-size block windows.
+
+    Why this exists:
+    - The standard JSON-RPC `eth_getLogs` does not support a "limit"/"count" parameter.
+    - Many providers enforce response size / block-range constraints.
+
+    This helper keeps each request bounded by scanning [from_block, to_block]
+    windows backwards until enough events are collected.
+    """
+    if not isinstance(to_block, int) or not isinstance(logs_number, int) or not isinstance(chunk_size, int):
+        raise TypeError("to_block, logs_number, and chunk_size must be integers")
+    if max_scan_blocks is not None and not isinstance(max_scan_blocks, int):
+        raise TypeError("max_scan_blocks must be an integer or None")
+    if to_block < 0:
+        raise ValueError("to_block must be non-negative")
+    if logs_number <= 0:
+        raise ValueError("logs_number must be a positive integer")
+    if chunk_size <= 0:
+        raise ValueError("chunk_size must be a positive integer")
+    if max_scan_blocks is not None and max_scan_blocks <= 0:
+        raise ValueError("max_scan_blocks must be a positive integer")
+
+    collected: List[Dict] = []
+    current_to = int(to_block)
+
+    remaining_scan_blocks = int(max_scan_blocks) if max_scan_blocks is not None else None
+
+    provider_too_large_retries = 0
+
+    while current_to >= 0 and len(collected) < logs_number:
+        if remaining_scan_blocks is not None and remaining_scan_blocks <= 0:
+            raise ValueError(
+                "max_scan_blocks exhausted before reaching logs_number"
+            )
+
+        current_from = max(0, current_to - int(chunk_size) + 1)
+
+        if remaining_scan_blocks is not None:
+            # cap the window to the remaining scan budget
+            min_from_allowed = max(0, current_to - remaining_scan_blocks + 1)
+            current_from = max(current_from, min_from_allowed)
+
+        try:
+            chunk_events = fetch_events_in_block_range(
+                contract_address=contract_address,
+                provider_url=provider_url,
+                from_block=current_from,
+                to_block=current_to,
+            )
+        except ValueError as e:
+            msg = str(e).lower()
+            if (
+                "response size" in msg
+                or "too many" in msg
+                or "log response" in msg
+                or "more than" in msg
+            ) and int(chunk_size) > 1:
+                provider_too_large_retries += 1
+                if provider_too_large_retries > 20:
+                    raise
+                chunk_size = max(1, int(chunk_size) // 2)
+                continue
+            raise
+
+        provider_too_large_retries = 0
+        collected.extend(chunk_events)
+
+        if remaining_scan_blocks is not None:
+            remaining_scan_blocks -= (current_to - current_from + 1)
+
+        if current_from == 0:
+            break
+        current_to = current_from - 1
+
+    _sort_events_in_block_order(collected)
+    if len(collected) <= logs_number:
+        return collected
+    return collected[-logs_number:]

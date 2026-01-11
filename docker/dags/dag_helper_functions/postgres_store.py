@@ -80,6 +80,20 @@ def ensure_event_graph_tables() -> None:
                 """
             )
 
+            # Production hardening: add ingestion timestamps for retention/cleanup.
+            cur.execute(
+                """
+                ALTER TABLE event_graph_event
+                ADD COLUMN IF NOT EXISTS ingested_at TIMESTAMPTZ NOT NULL DEFAULT now();
+                """
+            )
+            cur.execute(
+                """
+                ALTER TABLE event_graph_edge
+                ADD COLUMN IF NOT EXISTS ingested_at TIMESTAMPTZ NOT NULL DEFAULT now();
+                """
+            )
+
 
 def store_events_in_postgres(run_id: str, events: List[Dict]) -> int:
     """Upsert normalized events for a given run_id. Returns number of rows written."""
@@ -103,7 +117,8 @@ def store_events_in_postgres(run_id: str, events: List[Dict]) -> int:
                     INSERT INTO event_graph_event (run_id, event_id, event)
                     VALUES (%s, %s, %s)
                     ON CONFLICT (run_id, event_id)
-                    DO UPDATE SET event = EXCLUDED.event
+                    DO UPDATE SET event = EXCLUDED.event,
+                                 ingested_at = now()
                     """,
                     (run_id, event_id, Json(e)),
                 )
@@ -149,12 +164,43 @@ def store_edges_in_postgres(run_id: str, edges: Iterable[Tuple[str, str]]) -> in
                     INSERT INTO event_graph_edge (run_id, parent_event_id, child_event_id)
                     VALUES (%s, %s, %s)
                     ON CONFLICT (run_id, parent_event_id, child_event_id)
-                    DO NOTHING
+                    DO UPDATE SET ingested_at = now()
                     """,
                     (run_id, parent_id, child_id),
                 )
                 rows += 1
     return rows
+
+
+def cleanup_event_graph_tables(retention_hours: int) -> None:
+    """Delete old staging rows based on `ingested_at`.
+
+    This is intended to keep the Airflow metadata DB from growing unbounded.
+    """
+    if not isinstance(retention_hours, int):
+        raise TypeError("retention_hours must be an integer")
+    if retention_hours <= 0:
+        raise ValueError("retention_hours must be a positive integer")
+
+    ensure_event_graph_tables()
+
+    with _connect() as conn:
+        with conn.cursor() as cur:
+            # Delete edges first (potentially referencing events).
+            cur.execute(
+                """
+                DELETE FROM event_graph_edge
+                WHERE ingested_at < (now() - (%s * interval '1 hour'));
+                """,
+                (retention_hours,),
+            )
+            cur.execute(
+                """
+                DELETE FROM event_graph_event
+                WHERE ingested_at < (now() - (%s * interval '1 hour'));
+                """,
+                (retention_hours,),
+            )
 
 
 def load_edges_from_postgres(run_id: str) -> List[Tuple[str, str]]:
