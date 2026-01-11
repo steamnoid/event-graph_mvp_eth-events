@@ -7,7 +7,7 @@ x-airflow-base: &airflow-base
   image: eventgraph-airflow:2.6.2
   environment:
     AIRFLOW__CORE__EXECUTOR: LocalExecutor
-    AIRFLOW__CORE__LOAD_EXAMPLES: "true"
+    AIRFLOW__CORE__LOAD_EXAMPLES: "false"
     AIRFLOW__CORE__FERNET_KEY: "4Yv6zK5pSH3sdbDM6u9j+Gnt6UKGjL1K7i3W8zG38Qc="
     AIRFLOW__CORE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres:5432/airflow
     ALCHEMY_URL: ${ALCHEMY_URL}

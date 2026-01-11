@@ -3,6 +3,11 @@ prototype/docker/neo4j/data
 prototype/docker/neo4j/logs
 prototype/docker/postgres/data
 
+docker/logs
+docker/neo4j/data
+docker/neo4j/logs
+docker/postgres/data
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[codz]
