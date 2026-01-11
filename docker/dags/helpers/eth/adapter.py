@@ -25,7 +25,7 @@ def fetch_logs():
     """Fetch recent logs from a specific contract on Ethereum mainnet via Alchemy."""
     w3 = _get_web3_instance()
     to_block = fetch_latest_block_number()
-    from_block = max(0, to_block - 1000)
+    from_block = max(0, to_block - 2000)
     
     logs = w3.eth.get_logs({
         'fromBlock': from_block,

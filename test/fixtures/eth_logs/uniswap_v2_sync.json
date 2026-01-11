@@ -1,0 +1,20 @@
+{
+  "raw_log": {
+    "address": "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "topics": [
+      "0x1c411e9a96e071241c2f21f7726b17ae89e3cab4c78be50e062b03a9fffbbad1"
+    ],
+    "data": "0x0000000000000000000000000000000000000000000000000000000000000009000000000000000000000000000000000000000000000000000000000000000a",
+    "blockNumber": 123,
+    "transactionIndex": 7,
+    "logIndex": 9,
+    "transactionHash": "0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+  },
+  "expected": {
+    "event_name": "Sync",
+    "decoded": {
+      "reserve0": 9,
+      "reserve1": 10
+    }
+  }
+}
