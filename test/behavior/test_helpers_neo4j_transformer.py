@@ -98,5 +98,90 @@ def test_full_stack_fixture_to_graph_produces_valid_causal_edges(tmp_path):
         and all(_edge_ok(edge) for edge in graph["edges"])
     )
 
+@pytest.mark.behavior
+def test_full_stack_fixture_to_neo4j_writes_all_events_and_edges(tmp_path):
+    from collections import defaultdict
+
+    from neo4j import GraphDatabase
+
+    from dags.helpers.eth.logs.transformer import load_logs_from_file, transform_logs, write_events_to_file
+    from dags.helpers.neo4j.adapter import load_graph_from_file, write_graph_to_db
+    from dags.helpers.neo4j.transformer import load_events_from_file, transform_events, write_graph_to_file
+
+    raw_logs = load_logs_from_file(str(_FIXTURE_LOGS_FILE))
+    events = transform_logs(raw_logs)
+
+    events_file = tmp_path / "events.json"
+    write_events_to_file(events, str(events_file))
+    loaded_events = load_events_from_file(str(events_file))
+
+    edges = transform_events(loaded_events)
+
+    run_id = "behavior:full-stack-fixture"
+    graph_file = tmp_path / "graph.json"
+    write_graph_to_file(events=loaded_events, edges=edges, run_id=run_id, filename=str(graph_file))
+
+    graph = load_graph_from_file(str(graph_file))
+    write_graph_to_db(graph)
+
+    # Compute average depth (nodes on longest path) per tx from the graph payload.
+    events_by_id = {e.get("event_id"): e for e in loaded_events if e.get("event_id")}
+    nodes_by_tx = defaultdict(list)
+    for e in loaded_events:
+        if e.get("tx_hash") and e.get("event_id"):
+            nodes_by_tx[e["tx_hash"]].append(e)
+
+    edges_by_tx = defaultdict(list)
+    for edge in edges:
+        parent = events_by_id.get(edge.get("from"))
+        child = events_by_id.get(edge.get("to"))
+        if parent and child and parent.get("tx_hash") == child.get("tx_hash"):
+            edges_by_tx[parent["tx_hash"]].append(edge)
+
+    def depth_for_tx(tx_hash: str) -> int:
+        tx_nodes = nodes_by_tx.get(tx_hash, [])
+        if not tx_nodes:
+            return 0
+        parents = defaultdict(list)
+        for edge in edges_by_tx.get(tx_hash, []):
+            parents[edge["to"]].append(edge["from"])
+        ordered = sorted(tx_nodes, key=lambda e: int(e.get("log_index") or -1))
+        dp = {}
+        for e in ordered:
+            eid = e["event_id"]
+            best = 1
+            for p in parents.get(eid, []):
+                best = max(best, dp.get(p, 1) + 1)
+            dp[eid] = best
+        return max(dp.values()) if dp else 0
+
+    depths = [depth_for_tx(tx) for tx in edges_by_tx.keys() if edges_by_tx[tx]]
+    avg_depth = (sum(depths) / len(depths)) if depths else 0
+
+    uri = "neo4j://localhost:7687"
+    driver = GraphDatabase.driver(uri, auth=("neo4j", "test"))
+    try:
+        with driver.session() as session:
+            counts = session.run(
+                """
+                MATCH (r:Run {run_id: $run_id})-[:INCLUDES]->(e:Event)
+                WITH r, count(DISTINCT e) AS events
+                MATCH (r)-[:INCLUDES]->(a:Event)
+                MATCH (r)-[:INCLUDES]->(b:Event)
+                OPTIONAL MATCH (a)-[rel:CAUSES]->(b)
+                RETURN events AS events, count(DISTINCT rel) AS rels
+                """,
+                run_id=run_id,
+            ).single()
+
+            assert (
+                counts is not None
+                and int(counts["events"]) == len(loaded_events)
+                and int(counts["rels"]) == len(edges)
+                and avg_depth >= 2.0
+            )
+    finally:
+        driver.close()
+
 
  
