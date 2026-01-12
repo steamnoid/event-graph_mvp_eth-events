@@ -53,7 +53,13 @@ def test_write_graph_to_file_writes_schema_v1_with_object_edges(tmp_path):
     with open(graph_file, "r", encoding="utf-8") as f:
         graph = json.load(f)
 
-    assert graph["run_id"] == run_id and graph["edges"] == edges and set(graph.keys()) == {"run_id", "events", "edges"}
+    assert (
+        graph["run_id"] == run_id
+        and graph["edges"] == edges
+        and isinstance(graph.get("graph_hash"), str)
+        and len(graph.get("graph_hash")) > 0
+        and set(graph.keys()) == {"run_id", "events", "edges", "graph_hash"}
+    )
 
 
 @pytest.mark.behavior
@@ -92,7 +98,7 @@ def test_full_stack_fixture_to_graph_produces_valid_causal_edges(tmp_path):
         return int(parent.get("log_index")) < int(child.get("log_index"))
 
     assert (
-        set(graph.keys()) == {"run_id", "events", "edges"}
+        set(graph.keys()) == {"run_id", "events", "edges", "graph_hash"}
         and graph["run_id"] == run_id
         and len(graph["edges"]) > 0
         and all(_edge_ok(edge) for edge in graph["edges"])
@@ -182,6 +188,69 @@ def test_full_stack_fixture_to_neo4j_writes_all_events_and_edges(tmp_path):
             )
     finally:
         driver.close()
+
+
+@pytest.mark.behavior
+def test_write_graph_to_db_persists_graph_hash_on_run(tmp_path):
+    from neo4j import GraphDatabase
+
+    from helpers.eth.logs.transformer import load_logs_from_file, transform_logs, write_events_to_file
+    from helpers.neo4j.adapter import load_graph_from_file, write_graph_to_db
+    from helpers.neo4j.transformer import load_events_from_file, transform_events, write_graph_to_file
+
+    raw_logs = load_logs_from_file(str(_FIXTURE_LOGS_FILE))
+    events = transform_logs(raw_logs)
+
+    events_file = tmp_path / "events.json"
+    write_events_to_file(events, str(events_file))
+    loaded_events = load_events_from_file(str(events_file))
+
+    edges = transform_events(loaded_events)
+
+    run_id = "behavior:graph-hash"
+    graph_file = tmp_path / "graph.json"
+    write_graph_to_file(events=loaded_events, edges=edges, run_id=run_id, filename=str(graph_file))
+
+    graph = load_graph_from_file(str(graph_file))
+    assert isinstance(graph.get("graph_hash"), str) and len(graph.get("graph_hash")) > 0
+
+    write_graph_to_db(graph)
+
+    driver = GraphDatabase.driver("neo4j://localhost:7687", auth=("neo4j", "test"))
+    try:
+        with driver.session() as session:
+            row = session.run(
+                "MATCH (r:Run {run_id: $run_id}) RETURN r.graph_hash AS graph_hash",
+                run_id=run_id,
+            ).single()
+            assert row is not None and row["graph_hash"] == graph["graph_hash"]
+    finally:
+        driver.close()
+
+
+@pytest.mark.behavior
+def test_compute_graph_hash_from_db_matches_file_graph_hash(tmp_path):
+    from helpers.eth.logs.transformer import load_logs_from_file, transform_logs, write_events_to_file
+    from helpers.neo4j.adapter import compute_graph_hash_from_db, load_graph_from_file, write_graph_to_db
+    from helpers.neo4j.transformer import load_events_from_file, transform_events, write_graph_to_file
+
+    raw_logs = load_logs_from_file(str(_FIXTURE_LOGS_FILE))
+    events = transform_logs(raw_logs)
+
+    events_file = tmp_path / "events.json"
+    write_events_to_file(events, str(events_file))
+    loaded_events = load_events_from_file(str(events_file))
+
+    edges = transform_events(loaded_events)
+
+    run_id = "behavior:db-hash"
+    graph_file = tmp_path / "graph.json"
+    write_graph_to_file(events=loaded_events, edges=edges, run_id=run_id, filename=str(graph_file))
+
+    graph = load_graph_from_file(str(graph_file))
+    write_graph_to_db(graph)
+
+    assert compute_graph_hash_from_db(run_id) == graph["graph_hash"]
 
 
  

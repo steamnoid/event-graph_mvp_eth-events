@@ -48,6 +48,15 @@ This prototype MUST:
 - avoid duplicating logic unnecessarily
 - import from the main project instead of rewriting core concepts
 
+### Workspace boundary (strict)
+
+- All Kafka prototype code and tests MUST live under `__kafka_prototype/`.
+- Do NOT add prototype tests under the main project's `test/` tree.
+- Do NOT add prototype modules under the main project's `src/` tree.
+- If changes outside `__kafka_prototype/` are genuinely required, ask first.
+
+Practical note: run prototype tests with `cd __kafka_prototype && pytest` (this directory has its own `pytest.ini`).
+
 If something exists in the main project:
 → prefer using it, even if it feels slightly awkward.
 
@@ -103,6 +112,11 @@ Out of scope:
 - schema registries
 
 Keep it minimal.
+
+### Kafka deployment constraint (strict)
+
+- Do NOT use Zookeeper.
+- Use Kafka's built-in KRaft mode only.
 
 ---
 

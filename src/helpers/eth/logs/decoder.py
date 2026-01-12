@@ -3,19 +3,6 @@ from web3 import Web3
 from eth_abi import decode as abi_decode
 
 
-_ERC20_TRANSFER_TOPIC0 = "0x" + Web3.keccak(text="Transfer(address,address,uint256)").hex()
-_ERC20_APPROVAL_TOPIC0 = "0x" + Web3.keccak(text="Approval(address,address,uint256)").hex()
-
-_UNISWAP_V2_PAIR_CREATED_TOPIC0 = (
-    "0x" + Web3.keccak(text="PairCreated(address,address,address,uint256)").hex()
-)
-
-_UNISWAP_V2_SWAP_TOPIC0 = "0x" + Web3.keccak(text="Swap(address,uint256,uint256,uint256,uint256,address)").hex()
-_UNISWAP_V2_MINT_TOPIC0 = "0x" + Web3.keccak(text="Mint(address,uint256,uint256)").hex()
-_UNISWAP_V2_BURN_TOPIC0 = "0x" + Web3.keccak(text="Burn(address,uint256,uint256,address)").hex()
-_UNISWAP_V2_SYNC_TOPIC0 = "0x" + Web3.keccak(text="Sync(uint112,uint112)").hex()
-
-
 def _as_0x_prefixed_hex(value) -> str:
     if isinstance(value, str):
         return value if value.startswith("0x") else "0x" + value
@@ -23,6 +10,25 @@ def _as_0x_prefixed_hex(value) -> str:
         hex_str = value.hex()
         return hex_str if hex_str.startswith("0x") else "0x" + hex_str
     return str(value)
+
+
+def _event_topic0(signature: str) -> str:
+    return _as_0x_prefixed_hex(Web3.keccak(text=signature))
+
+
+_ERC20_TRANSFER_TOPIC0 = _event_topic0("Transfer(address,address,uint256)")
+_ERC20_APPROVAL_TOPIC0 = _event_topic0("Approval(address,address,uint256)")
+
+_UNISWAP_V2_PAIR_CREATED_TOPIC0 = _event_topic0(
+    "PairCreated(address,address,address,uint256)"
+)
+
+_UNISWAP_V2_SWAP_TOPIC0 = _event_topic0(
+    "Swap(address,uint256,uint256,uint256,uint256,address)"
+)
+_UNISWAP_V2_MINT_TOPIC0 = _event_topic0("Mint(address,uint256,uint256)")
+_UNISWAP_V2_BURN_TOPIC0 = _event_topic0("Burn(address,uint256,uint256,address)")
+_UNISWAP_V2_SYNC_TOPIC0 = _event_topic0("Sync(uint112,uint112)")
 
 
 def _indexed_topic_to_checksum_address(topic) -> str:

@@ -18,6 +18,7 @@ def _neo4j_config() -> tuple[str, str, str]:
 
 def write_graph_to_db(graph: dict) -> None:
 	run_id = graph.get("run_id")
+	graph_hash = graph.get("graph_hash")
 	events = graph.get("events") or []
 	edges = graph.get("edges") or []
 
@@ -30,7 +31,11 @@ def write_graph_to_db(graph: dict) -> None:
 				"MATCH (r:Run {run_id: $run_id}) DETACH DELETE r",
 				run_id=run_id,
 			)
-			session.run("MERGE (r:Run {run_id: $run_id})", run_id=run_id)
+			session.run(
+				"MERGE (r:Run {run_id: $run_id}) SET r.graph_hash = $graph_hash",
+				run_id=run_id,
+				graph_hash=graph_hash,
+			)
 
 			for event in events:
 				event_id = event.get("event_id")
@@ -75,5 +80,50 @@ def write_graph_to_db(graph: dict) -> None:
 					parent_id=parent_id,
 					child_id=child_id,
 				)
+	finally:
+		driver.close()
+
+
+def compute_graph_hash_from_db(run_id: str) -> str:
+	"""Compute a deterministic hash of what is actually stored in Neo4j for a given run.
+
+	This hashes the same subset of fields as helpers.neo4j.transformer.compute_graph_hash,
+	but sources them from Neo4j nodes/relationships instead of a file payload.
+	"""
+	from helpers.neo4j.transformer import compute_graph_hash
+
+	uri, user, password = _neo4j_config()
+	driver = GraphDatabase.driver(uri, auth=(user, password))
+	try:
+		with driver.session() as session:
+			events_rows = session.run(
+				"""
+				MATCH (r:Run {run_id: $run_id})-[:INCLUDES]->(e:Event)
+				RETURN e.event_id AS event_id, e.tx_hash AS tx_hash, e.log_index AS log_index, e.event_name AS event_name
+				""",
+				run_id=run_id,
+			)
+			events = [
+				{
+					"event_id": row["event_id"],
+					"tx_hash": row["tx_hash"],
+					"log_index": row["log_index"],
+					"event_name": row["event_name"],
+				}
+				for row in events_rows
+			]
+
+			edges_rows = session.run(
+				"""
+				MATCH (r:Run {run_id: $run_id})-[:INCLUDES]->(a:Event)
+				MATCH (r:Run {run_id: $run_id})-[:INCLUDES]->(b:Event)
+				MATCH (a)-[:CAUSES]->(b)
+				RETURN a.event_id AS from, b.event_id AS to
+				""",
+				run_id=run_id,
+			)
+			edges = [{"from": row["from"], "to": row["to"]} for row in edges_rows]
+
+		return compute_graph_hash(events=events, edges=edges)
 	finally:
 		driver.close()
