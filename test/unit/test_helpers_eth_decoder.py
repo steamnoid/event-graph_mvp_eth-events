@@ -1,6 +1,7 @@
 import json
 import pytest
 
+@pytest.mark.unit
 @pytest.mark.parametrize(
 	"fixture_path",
 	[

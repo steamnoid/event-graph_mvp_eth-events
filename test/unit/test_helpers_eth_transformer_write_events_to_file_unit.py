@@ -1,6 +1,7 @@
 import json
+import pytest
 
-
+@pytest.mark.unit
 def test_write_events_to_file_writes_json_and_returns_count(tmp_path):
     from dags.helpers.eth.logs.transformer import write_events_to_file
 
