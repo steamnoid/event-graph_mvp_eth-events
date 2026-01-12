@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Implement a read-only, post-factum event graph system for Uniswap V3 (WETH/USDC),
+Implement a read-only, post-factum event graph system for Uniswap (WETH/USDC),
 focused on causality, invariants, and behavioral reasoning.
 
 ## Conceptual foundations
@@ -23,17 +23,43 @@ event_id = tx_hash + ":" + log_index
 - Parent logIndex must be lower
 - Resulting graph must be a DAG
 
+Direction convention:
+- We model causality as “earlier log → later log” within a transaction.
+- Every edge must satisfy: `parent.logIndex < child.logIndex`.
+
+Practical note (based on contract code):
+- In Uniswap V2, token `Transfer` logs generally happen before `Sync`, and `Sync` happens before `Swap/Mint/Burn`.
+- In Uniswap V3, token transfers may occur before the pool’s `Swap` event; ordering between input/output transfers can vary.
+
 ### Transfer IN
 - No parents
 
-### Swap / Mint
-- Parents = all Transfer IN earlier in the transaction
-
 ### Transfer OUT
-- Parent = last pool state-changing event
+- Parents = all Transfer IN earlier in the transaction (simplified)
 
-### Burn
-- Parent = last Mint or Burn (simplified)
+Rationale: on-chain logs frequently show the user/router paying in before the pool pays out (V2 typical path).
+This yields richer graphs while preserving strict `logIndex` ordering.
+
+### Sync (V2)
+- Parents = all Transfer logs earlier in the transaction that involve the pool (either IN or OUT)
+
+### Swap (V2)
+- Parents = last `Sync` earlier in the transaction
+- Also include: all Transfer IN earlier in the transaction
+
+### Mint (V2)
+- Parents = last `Sync` earlier in the transaction
+- Also include: all Transfer IN earlier in the transaction
+
+### Burn (V2)
+- Parents = last `Sync` earlier in the transaction
+
+### Swap (V3)
+- Parents = all Transfer logs earlier in the transaction that involve the pool (either IN or OUT)
+
+Non-goal:
+- Do not infer causality from timestamps, gas, or heuristics outside log order.
+- If a plausible domain-causality edge would violate `logIndex(parent) < logIndex(child)`, do not add it.
 
 ## Tech stack
 
