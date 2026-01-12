@@ -1,7 +1,7 @@
-__prototype/docker/logs
-__prototype/docker/neo4j/data
-__prototype/docker/neo4j/logs
-__prototype/docker/postgres/data
+__airflow_prototype/docker/logs
+__airflow_prototype/docker/neo4j/data
+__airflow_prototype/docker/neo4j/logs
+__airflow_prototype/docker/postgres/data
 
 docker/logs
 docker/neo4j/data
