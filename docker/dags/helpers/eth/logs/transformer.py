@@ -11,3 +11,9 @@ def transform_logs(raw_logs: list[dict]) -> list[dict]:
 
 	return [decode_log(raw_log) for raw_log in raw_logs]
 
+
+def write_events_to_file(events: list[dict], filename: str) -> int:
+	with open(filename, "w", encoding="utf-8") as f:
+		json.dump(events, f)
+	return len(events)
+
