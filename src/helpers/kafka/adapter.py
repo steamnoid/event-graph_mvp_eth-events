@@ -69,3 +69,15 @@ def consume_raw_logs_to_file(
     out_path.parent.mkdir(parents=True, exist_ok=True)
     out_path.write_text(json.dumps(messages), encoding="utf-8")
     return len(messages)
+
+
+def plan_bootstrap_offsets(*, end_offset: int, num_messages: int) -> int:
+    if num_messages <= 0:
+        raise ValueError("num_messages must be > 0")
+    if end_offset < 0:
+        raise ValueError("end_offset must be >= 0")
+
+    start_offset = end_offset - num_messages
+    if start_offset < 0:
+        raise ValueError("start_offset would be negative")
+    return start_offset

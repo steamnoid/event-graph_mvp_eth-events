@@ -10,6 +10,8 @@ from airflow.operators.python import PythonOperator
 
 
 DAG_ID = "kafka_eth_to_neo4j_graph"
+DEFAULT_BOOTSTRAP_TOPIC = "eth.raw_logs.bootstrap_default"
+DEFAULT_BOOTSTRAP_FIXTURE_FILE = "/opt/airflow/dags/kafka_default_raw_logs.json"
 
 
 def _run_dir(run_id: str) -> Path:
@@ -33,10 +35,16 @@ def consume_kafka_logs_to_file(**context) -> str:
         out_file.write_text(json.dumps(raw_logs), encoding="utf-8")
         return str(out_file)
 
-    topic = (conf.get("topic") if conf else None) or "eth.raw_logs"
-    partition = int((conf.get("partition") if conf else 0) or 0)
-    offset = int((conf.get("offset") if conf else 0) or 0)
-    max_messages = int((conf.get("max_messages") if conf else 1) or 1)
+    bootstrap_conf = None
+    if not conf:
+        ti = context.get("ti")
+        if ti is not None:
+            bootstrap_conf = ti.xcom_pull(task_ids="bootstrap_kafka_input")
+
+    topic = (conf.get("topic") if conf else None) or (bootstrap_conf or {}).get("topic") or "eth.raw_logs"
+    partition = int((conf.get("partition") if conf else None) or (bootstrap_conf or {}).get("partition") or 0)
+    offset = int((conf.get("offset") if conf else None) or (bootstrap_conf or {}).get("offset") or 0)
+    max_messages = int((conf.get("max_messages") if conf else None) or (bootstrap_conf or {}).get("max_messages") or 1)
 
     from helpers.kafka.adapter import consume_raw_logs_to_file
 
@@ -49,6 +57,59 @@ def consume_kafka_logs_to_file(**context) -> str:
     )
 
     return str(out_file)
+
+
+def bootstrap_kafka_input(**context) -> dict:
+    dag_run = context.get("dag_run")
+    conf = getattr(dag_run, "conf", None) if dag_run is not None else None
+
+    # If the user provided any deterministic input config, do nothing.
+    if conf and (
+        conf.get("source_logs_file")
+        or conf.get("topic")
+        or conf.get("offset") is not None
+        or conf.get("max_messages") is not None
+    ):
+        return {}
+
+    payload = json.loads(Path(DEFAULT_BOOTSTRAP_FIXTURE_FILE).read_text(encoding="utf-8"))
+    if not isinstance(payload, list) or len(payload) == 0:
+        raise RuntimeError(f"Default bootstrap fixture is empty: {DEFAULT_BOOTSTRAP_FIXTURE_FILE}")
+
+    try:
+        from kafka import KafkaConsumer, KafkaProducer, TopicPartition  # type: ignore
+    except Exception as e:  # pragma: no cover
+        raise RuntimeError(f"kafka-python is required at runtime: {e}")
+
+    from helpers.kafka.adapter import _bootstrap_servers
+
+    tp = TopicPartition(DEFAULT_BOOTSTRAP_TOPIC, 0)
+    consumer = KafkaConsumer(
+        bootstrap_servers=_bootstrap_servers(),
+        enable_auto_commit=False,
+        auto_offset_reset="none",
+        consumer_timeout_ms=2000,
+    )
+    end_offsets = consumer.end_offsets([tp])
+    start_offset = int(end_offsets.get(tp, 0))
+    consumer.close()
+
+    producer = KafkaProducer(
+        bootstrap_servers=_bootstrap_servers(),
+        value_serializer=lambda v: json.dumps(v).encode("utf-8"),
+        acks="all",
+    )
+    for log in payload:
+        producer.send(DEFAULT_BOOTSTRAP_TOPIC, value=log, partition=0)
+    producer.flush()
+    producer.close()
+
+    return {
+        "topic": DEFAULT_BOOTSTRAP_TOPIC,
+        "partition": 0,
+        "offset": start_offset,
+        "max_messages": len(payload),
+    }
 
 
 def transform_logs_to_events_file(logs_file: str, **context) -> str:
@@ -89,6 +150,7 @@ with DAG(
     catchup=False,
     tags=["event-graph", "kafka"],
 ) as dag:
+    t0 = PythonOperator(task_id="bootstrap_kafka_input", python_callable=bootstrap_kafka_input)
     t1 = PythonOperator(task_id="consume_kafka_logs_to_file", python_callable=consume_kafka_logs_to_file)
 
     t2 = PythonOperator(
@@ -109,4 +171,4 @@ with DAG(
         op_args=["{{ ti.xcom_pull(task_ids='transform_events_to_graph_file') }}"],
     )
 
-    t1 >> t2 >> t3 >> t4
+    t0 >> t1 >> t2 >> t3 >> t4
