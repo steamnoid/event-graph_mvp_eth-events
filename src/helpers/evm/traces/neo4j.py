@@ -1,3 +1,5 @@
+import json
+
 from helpers.evm.traces.hash import trace_graph_hash
 from helpers.evm.traces.transformer import trace_graph_for_trace_block_response
 from helpers.evm.traces.transformer import trace_graph_for_trace_transaction_response
@@ -16,6 +18,18 @@ def trace_transaction_response_to_neo4j_graph(response: dict) -> dict:
     return trace_graph_to_neo4j_graph(trace_graph)
 
 
+def trace_transaction_fixture_file_to_neo4j_graph(fixture_file: str) -> dict:
+    with open(fixture_file, "r", encoding="utf-8") as f:
+        response = json.load(f)
+    return trace_transaction_response_to_neo4j_graph(response=response)
+
+
 def trace_block_response_to_neo4j_graph(response: dict) -> dict:
     trace_graph = trace_graph_for_trace_block_response(response=response)
     return trace_graph_to_neo4j_graph(trace_graph)
+
+
+def trace_block_fixture_file_to_neo4j_graph(fixture_file: str) -> dict:
+    with open(fixture_file, "r", encoding="utf-8") as f:
+        response = json.load(f)
+    return trace_block_response_to_neo4j_graph(response=response)

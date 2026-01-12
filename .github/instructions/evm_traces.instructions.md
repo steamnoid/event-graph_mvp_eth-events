@@ -17,6 +17,48 @@ This document is **normative**.
 
 ---
 
+## 0.1 MVP intent (clarification)
+
+The current MVP direction is:
+
+- An **Airflow DAG** builds trace-derived graphs for **transactions** in the **latest ~100 blocks**.
+- For each block in that range, the DAG enumerates transaction hashes (via standard Ethereum RPC), then fetches **per-transaction traces** using `trace_transaction(tx_hash)`.
+- Graph construction uses shared helpers only (deterministic `event_id`, parent via `traceAddress`, stable ordering).
+
+Out of scope for the current MVP:
+
+- cursor / incremental “only new blocks” processing (we re-process the latest ~100 blocks each run for now)
+- durability strategy (it is acceptable to manually clear Neo4j during MVP)
+- using `trace_block` as the primary ingestion method (it can exist for fixtures / shape testing)
+
+---
+
+## 0.2 Airflow task architecture (helpers-first)
+
+We follow the same structure as the existing **eth logs** pipeline:
+
+- Airflow DAG code and operators are **orchestration only**.
+- Each Airflow task must call **shared helpers** to do all interpretation/transform work.
+- All trace semantics must live in `src/helpers/...` (pure, deterministic, TDD-covered).
+
+Concretely, tasks should be thin wrappers around helpers:
+
+- block range planning (pure helper)
+- fetching tx hashes (RPC adapter/helper)
+- fetching traces per tx (`trace_transaction`) (client/helper)
+- building trace graphs and Neo4j payloads (transformer/neo4j helper)
+- writing graph snapshots to Neo4j (Neo4j adapter/helper)
+
+Neo4j write semantics (MVP):
+
+- The task that writes to Neo4j must accept a helper-produced payload shaped like `{run_id, events, edges}`.
+- `run_id` should be deterministic (e.g. derived from `graph_hash`) so re-runs of the same input are idempotent.
+- The DAG must not implement Cypher or merge semantics directly; it calls the existing Neo4j adapter.
+
+Airflow must NOT contain embedded parsing rules, parent inference, event_id logic, or ad-hoc graph shaping.
+
+---
+
 ## 1. Source of truth
 
 EVM execution traces are fetched from **Ethereum Mainnet** using:
