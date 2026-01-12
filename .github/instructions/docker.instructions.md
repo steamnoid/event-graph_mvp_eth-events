@@ -43,6 +43,18 @@ Python execution must happen either:
 
 No mixed host/container execution.
 
+### Exception: local helper tests (allowed)
+
+For fast iteration on pure helper logic, it is allowed to run `pytest` on the host
+machine **only for tests that exercise helper functions** and do not require
+Airflow runtime context.
+
+Constraints for this exception:
+- Tests must be deterministic and have no side effects at import time.
+- No network calls to Ethereum RPC from host-run tests.
+- If Neo4j/PostgreSQL are needed, they must still run in Docker and be accessed
+  via explicit host ports.
+
 ---
 
 ## 3. Docker orchestration
