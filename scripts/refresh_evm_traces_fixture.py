@@ -81,7 +81,22 @@ def refresh_evm_traces_fixture(*, output_file: Path, alchemy_url: str, tx_hash: 
     output_file.parent.mkdir(parents=True, exist_ok=True)
 
     payload = build_trace_transaction_request(tx_hash=tx_hash, request_id=request_id)
-    response = post_json_rpc(url=alchemy_url, payload=payload)
+    try:
+        response = post_json_rpc(url=alchemy_url, payload=payload)
+    except Exception as e:  # noqa: BLE001
+        response_text = getattr(getattr(e, "response", None), "text", None)
+        inned = (
+            f"trace_transaction fixture refresh failed (tx_hash={tx_hash}).\n"
+            "Most common causes:\n"
+            "- running with system python instead of .venv (missing requests/web3 deps)\n"
+            "- invalid ALCHEMY_URL / network issue\n\n"
+            "Run with:\n"
+            "  ALCHEMY_URL=... ./.venv/bin/python scripts/refresh_evm_traces_fixture.py\n\n"
+            f"Original error: {e}"
+        )
+        if isinstance(response_text, str) and response_text.strip():
+            inned = inned + f"\n\nHTTP response body: {response_text.strip()}"
+        raise SystemExit(inned) from e
 
     output_file.write_text(json.dumps(response, indent=2, sort_keys=True) + "\n")
     return 1
@@ -91,7 +106,23 @@ def refresh_evm_trace_block_fixture(*, output_file: Path, alchemy_url: str, bloc
     output_file.parent.mkdir(parents=True, exist_ok=True)
 
     payload = build_trace_block_request(block_number=block_number, request_id=request_id)
-    response = post_json_rpc(url=alchemy_url, payload=payload)
+    try:
+        response = post_json_rpc(url=alchemy_url, payload=payload)
+    except Exception as e:  # noqa: BLE001
+        response_text = getattr(getattr(e, "response", None), "text", None)
+        inned = (
+            f"trace_block fixture refresh failed (block_number={block_number}).\n"
+            "Most common causes:\n"
+            "- block_number is above chain tip (e.g. 99999999)\n"
+            "- running with system python instead of .venv (missing requests/web3 deps)\n"
+            "- invalid ALCHEMY_URL / network issue\n\n"
+            "Try a known-good default (derives block from eth logs fixture):\n"
+            "  ALCHEMY_URL=... ./.venv/bin/python scripts/refresh_evm_traces_fixture.py --mode block\n\n"
+            f"Original error: {e}"
+        )
+        if isinstance(response_text, str) and response_text.strip():
+            inned = inned + f"\n\nHTTP response body: {response_text.strip()}"
+        raise SystemExit(inned) from e
 
     output_file.write_text(json.dumps(response, indent=2, sort_keys=True) + "\n")
     return 1
