@@ -1,12 +1,20 @@
 import json
+from pathlib import Path
 import pytest
 
-@pytest.mark.e2e
-def test_transform_logs_decodes_all_fetched_logs():
-    from dags.helpers.eth.adapter import fetch_logs
-    from dags.helpers.eth.logs.transformer import transform_logs
+_FIXTURE_LOGS_FILE = (
+    Path(__file__).resolve().parents[1]
+    / "fixtures"
+    / "eth_logs"
+    / "fetch_logs_uniswap_v2_weth_usdc.json"
+)
 
-    raw_logs = fetch_logs()
+
+@pytest.mark.behavior
+def test_transform_logs_decodes_all_fixture_logs():
+    from dags.helpers.eth.logs.transformer import load_logs_from_file, transform_logs
+
+    raw_logs = load_logs_from_file(str(_FIXTURE_LOGS_FILE))
     transformed = transform_logs(raw_logs)
 
     assert len(transformed) == len(raw_logs)
@@ -18,12 +26,12 @@ def test_transform_logs_decodes_all_fetched_logs():
     )
 
 
-@pytest.mark.e2e
+@pytest.mark.behavior
 def test_logs_written_and_loaded_from_file_are_kosher(tmp_path):
-    from dags.helpers.eth.adapter import fetch_logs, write_logs_to_file
+    from dags.helpers.eth.adapter import write_logs_to_file
     from dags.helpers.eth.logs.transformer import load_logs_from_file, transform_logs
 
-    raw_logs = fetch_logs()
+    raw_logs = load_logs_from_file(str(_FIXTURE_LOGS_FILE))
     out_file = tmp_path / "eth_logs.json"
 
     write_logs_to_file(raw_logs, str(out_file))
@@ -39,12 +47,11 @@ def test_logs_written_and_loaded_from_file_are_kosher(tmp_path):
         for item in transformed
     )
 
-@pytest.mark.e2e
+@pytest.mark.behavior
 def test_transform_logs_can_be_written_to_file(tmp_path):
-    from dags.helpers.eth.adapter import fetch_logs
-    from dags.helpers.eth.logs.transformer import transform_logs, write_events_to_file
+    from dags.helpers.eth.logs.transformer import load_logs_from_file, transform_logs, write_events_to_file
 
-    raw_logs = fetch_logs()
+    raw_logs = load_logs_from_file(str(_FIXTURE_LOGS_FILE))
     transformed = transform_logs(raw_logs)
 
     out_file = tmp_path / "events.json"

@@ -1,12 +1,21 @@
+from pathlib import Path
 import pytest
 
-@pytest.mark.e2e
+_FIXTURE_LOGS_FILE = (
+    Path(__file__).resolve().parents[1]
+    / "fixtures"
+    / "eth_logs"
+    / "fetch_logs_uniswap_v2_weth_usdc.json"
+)
+
+
+@pytest.mark.behavior
 def test_load_events_from_file_loads_transformed_events_from_disk(tmp_path):
-    from dags.helpers.eth.adapter import fetch_logs, write_logs_to_file
+    from dags.helpers.eth.adapter import write_logs_to_file
     from dags.helpers.eth.logs.transformer import load_logs_from_file, transform_logs, write_events_to_file
     from dags.helpers.neo4j.transformer import load_events_from_file
 
-    raw_logs = fetch_logs()
+    raw_logs = load_logs_from_file(str(_FIXTURE_LOGS_FILE))
     logs_file = tmp_path / "logs.json"
     write_logs_to_file(raw_logs, str(logs_file))
 
