@@ -4,6 +4,7 @@ from eth_abi import decode as abi_decode
 
 
 _ERC20_TRANSFER_TOPIC0 = "0x" + Web3.keccak(text="Transfer(address,address,uint256)").hex()
+_ERC20_APPROVAL_TOPIC0 = "0x" + Web3.keccak(text="Approval(address,address,uint256)").hex()
 
 _UNISWAP_V2_PAIR_CREATED_TOPIC0 = (
     "0x" + Web3.keccak(text="PairCreated(address,address,address,uint256)").hex()
@@ -62,6 +63,24 @@ def decode_transfer_args(raw_log: dict) -> dict | None:
     value = int(data_hex, 16) if data_hex else 0
 
     return {"from": from_addr, "to": to_addr, "value": value}
+
+
+def decode_approval_args(raw_log: dict) -> dict | None:
+    topics = raw_log.get("topics") or []
+    if len(topics) < 3:
+        return None
+
+    topic0_hex = _as_0x_prefixed_hex(topics[0])
+    if topic0_hex != _ERC20_APPROVAL_TOPIC0:
+        return None
+
+    owner = _indexed_topic_to_checksum_address(topics[1])
+    spender = _indexed_topic_to_checksum_address(topics[2])
+
+    data_hex = _as_0x_prefixed_hex(raw_log.get("data"))
+    value = int(data_hex, 16) if data_hex else 0
+
+    return {"owner": owner, "spender": spender, "value": value}
 
 
 def decode_swap_args(raw_log: dict) -> dict | None:
@@ -174,6 +193,7 @@ def decode_pair_created_args(raw_log: dict) -> dict | None:
 
 _KNOWN_EVENT_SPECS = [
     (_ERC20_TRANSFER_TOPIC0, "Transfer", decode_transfer_args),
+    (_ERC20_APPROVAL_TOPIC0, "Approval", decode_approval_args),
     (_UNISWAP_V2_PAIR_CREATED_TOPIC0, "PairCreated", decode_pair_created_args),
     (_UNISWAP_V2_SWAP_TOPIC0, "Swap", decode_swap_args),
     (_UNISWAP_V2_MINT_TOPIC0, "Mint", decode_mint_args),

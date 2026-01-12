@@ -25,6 +25,11 @@ def write_graph_to_db(graph: dict) -> None:
 	driver = GraphDatabase.driver(uri, auth=(user, password))
 	try:
 		with driver.session() as session:
+			# Treat run_id as a snapshot: overwrite any previous contents.
+			session.run(
+				"MATCH (r:Run {run_id: $run_id}) DETACH DELETE r",
+				run_id=run_id,
+			)
 			session.run("MERGE (r:Run {run_id: $run_id})", run_id=run_id)
 
 			for event in events:

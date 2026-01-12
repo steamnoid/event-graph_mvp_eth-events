@@ -11,6 +11,7 @@ x-airflow-base: &airflow-base
     AIRFLOW__CORE__FERNET_KEY: "4Yv6zK5pSH3sdbDM6u9j+Gnt6UKGjL1K7i3W8zG38Qc="
     AIRFLOW__CORE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres:5432/airflow
     ALCHEMY_URL: ${ALCHEMY_URL}
+    UNISWAP_V2_CONTRACT_ADDRESS: ${UNISWAP_V2_CONTRACT_ADDRESS}
     NEO4J_URI: neo4j://neo4j:7687
     NEO4J_USER: ${NEO4J_USER}
     NEO4J_PASSWORD: ${NEO4J_PASSWORD}

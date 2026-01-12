@@ -5,10 +5,10 @@ from pathlib import Path
 import sys
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(REPO_ROOT / "docker"))
+sys.path.insert(0, str(REPO_ROOT / "src"))
 
 try:
-    from dags.helpers.eth.adapter import fetch_logs, write_logs_to_file
+    from helpers.eth.adapter import fetch_logs, write_logs_to_file
 except ModuleNotFoundError as e:
     # Common case: user runs with system python which doesn't have web3 installed.
     raise SystemExit(
