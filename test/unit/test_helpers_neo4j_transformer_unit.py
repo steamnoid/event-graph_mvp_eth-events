@@ -3,7 +3,7 @@ import pytest
 
 @pytest.mark.unit
 def test_transform_events_adds_edge_from_last_sync_to_swap_in_same_tx():
-	from dags.helpers.neo4j.transformer import transform_events
+	from helpers.neo4j.transformer import transform_events
 
 	events = [
 		{"event_id": "0xabc:1", "tx_hash": "0xabc", "log_index": 1, "event_name": "Sync"},
@@ -17,7 +17,7 @@ def test_transform_events_adds_edge_from_last_sync_to_swap_in_same_tx():
 
 @pytest.mark.unit
 def test_transform_events_adds_edges_from_prior_transfers_to_swap_in_same_tx():
-	from dags.helpers.neo4j.transformer import transform_events
+	from helpers.neo4j.transformer import transform_events
 
 	events = [
 		{"event_id": "0xabc:0", "tx_hash": "0xabc", "log_index": 0, "event_name": "Transfer"},
@@ -31,7 +31,7 @@ def test_transform_events_adds_edges_from_prior_transfers_to_swap_in_same_tx():
 
 @pytest.mark.unit
 def test_transform_events_adds_edges_from_last_sync_and_prior_transfers_to_mint_in_same_tx():
-	from dags.helpers.neo4j.transformer import transform_events
+	from helpers.neo4j.transformer import transform_events
 
 	events = [
 		{"event_id": "0xabc:0", "tx_hash": "0xabc", "log_index": 0, "event_name": "Transfer"},
@@ -49,7 +49,7 @@ def test_transform_events_adds_edges_from_last_sync_and_prior_transfers_to_mint_
 
 @pytest.mark.unit
 def test_transform_events_adds_edge_from_last_sync_to_burn_in_same_tx():
-	from dags.helpers.neo4j.transformer import transform_events
+	from helpers.neo4j.transformer import transform_events
 
 	events = [
 		{"event_id": "0xabc:0", "tx_hash": "0xabc", "log_index": 0, "event_name": "Sync"},
@@ -63,7 +63,7 @@ def test_transform_events_adds_edge_from_last_sync_to_burn_in_same_tx():
 
 @pytest.mark.unit
 def test_transform_events_adds_edges_from_pool_transfers_to_sync_in_same_tx():
-	from dags.helpers.neo4j.transformer import transform_events
+	from helpers.neo4j.transformer import transform_events
 
 	pool = "0xPOOL"
 

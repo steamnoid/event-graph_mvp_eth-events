@@ -7,7 +7,7 @@ def load_logs_from_file(filename: str) -> list[dict]:
 
 
 def transform_logs(raw_logs: list[dict]) -> list[dict]:
-	from dags.helpers.eth.logs.decoder import decode_log
+	from helpers.eth.logs.decoder import decode_log
 
 	def _as_0x_prefixed(value):
 		if value is None:

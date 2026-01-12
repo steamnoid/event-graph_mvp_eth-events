@@ -16,7 +16,7 @@ def test_decode_log_unified(fixture_path):
 	"""Given a known log fixture, unified decoder returns name + decoded args."""
 	from web3 import Web3
 
-	from dags.helpers.eth.logs.decoder import decode_log
+	from helpers.eth.logs.decoder import decode_log
 
 	with open(fixture_path, "r", encoding="utf-8") as f:
 		payload = json.load(f)

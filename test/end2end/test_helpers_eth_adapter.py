@@ -1,6 +1,6 @@
 import pytest
 import json
-from dags.helpers.eth.adapter import *
+from helpers.eth.adapter import *
 
 @pytest.mark.e2e
 def test_chain_id_is_1():

@@ -11,9 +11,9 @@ _FIXTURE_LOGS_FILE = (
 
 @pytest.mark.behavior
 def test_load_events_from_file_loads_transformed_events_from_disk(tmp_path):
-    from dags.helpers.eth.adapter import write_logs_to_file
-    from dags.helpers.eth.logs.transformer import load_logs_from_file, transform_logs, write_events_to_file
-    from dags.helpers.neo4j.transformer import load_events_from_file
+    from helpers.eth.adapter import write_logs_to_file
+    from helpers.eth.logs.transformer import load_logs_from_file, transform_logs, write_events_to_file
+    from helpers.neo4j.transformer import load_events_from_file
 
     raw_logs = load_logs_from_file(str(_FIXTURE_LOGS_FILE))
     logs_file = tmp_path / "logs.json"
@@ -34,8 +34,8 @@ def test_load_events_from_file_loads_transformed_events_from_disk(tmp_path):
 def test_write_graph_to_file_writes_schema_v1_with_object_edges(tmp_path):
     import json
 
-    from dags.helpers.eth.logs.transformer import load_logs_from_file, transform_logs, write_events_to_file
-    from dags.helpers.neo4j.transformer import load_events_from_file, write_graph_to_file
+    from helpers.eth.logs.transformer import load_logs_from_file, transform_logs, write_events_to_file
+    from helpers.neo4j.transformer import load_events_from_file, write_graph_to_file
 
     raw_logs = load_logs_from_file(str(_FIXTURE_LOGS_FILE))
     transformed = transform_logs(raw_logs)
@@ -60,8 +60,8 @@ def test_write_graph_to_file_writes_schema_v1_with_object_edges(tmp_path):
 def test_full_stack_fixture_to_graph_produces_valid_causal_edges(tmp_path):
     import json
 
-    from dags.helpers.eth.logs.transformer import load_logs_from_file, transform_logs, write_events_to_file
-    from dags.helpers.neo4j.transformer import load_events_from_file, transform_events, write_graph_to_file
+    from helpers.eth.logs.transformer import load_logs_from_file, transform_logs, write_events_to_file
+    from helpers.neo4j.transformer import load_events_from_file, transform_events, write_graph_to_file
 
     raw_logs = load_logs_from_file(str(_FIXTURE_LOGS_FILE))
     events = transform_logs(raw_logs)
@@ -104,9 +104,9 @@ def test_full_stack_fixture_to_neo4j_writes_all_events_and_edges(tmp_path):
 
     from neo4j import GraphDatabase
 
-    from dags.helpers.eth.logs.transformer import load_logs_from_file, transform_logs, write_events_to_file
-    from dags.helpers.neo4j.adapter import load_graph_from_file, write_graph_to_db
-    from dags.helpers.neo4j.transformer import load_events_from_file, transform_events, write_graph_to_file
+    from helpers.eth.logs.transformer import load_logs_from_file, transform_logs, write_events_to_file
+    from helpers.neo4j.adapter import load_graph_from_file, write_graph_to_db
+    from helpers.neo4j.transformer import load_events_from_file, transform_events, write_graph_to_file
 
     raw_logs = load_logs_from_file(str(_FIXTURE_LOGS_FILE))
     events = transform_logs(raw_logs)

@@ -12,7 +12,7 @@ _FIXTURE_LOGS_FILE = (
 
 @pytest.mark.behavior
 def test_transform_logs_decodes_all_fixture_logs():
-    from dags.helpers.eth.logs.transformer import load_logs_from_file, transform_logs
+    from helpers.eth.logs.transformer import load_logs_from_file, transform_logs
 
     raw_logs = load_logs_from_file(str(_FIXTURE_LOGS_FILE))
     transformed = transform_logs(raw_logs)
@@ -28,8 +28,8 @@ def test_transform_logs_decodes_all_fixture_logs():
 
 @pytest.mark.behavior
 def test_logs_written_and_loaded_from_file_are_kosher(tmp_path):
-    from dags.helpers.eth.adapter import write_logs_to_file
-    from dags.helpers.eth.logs.transformer import load_logs_from_file, transform_logs
+    from helpers.eth.adapter import write_logs_to_file
+    from helpers.eth.logs.transformer import load_logs_from_file, transform_logs
 
     raw_logs = load_logs_from_file(str(_FIXTURE_LOGS_FILE))
     out_file = tmp_path / "eth_logs.json"
@@ -49,7 +49,7 @@ def test_logs_written_and_loaded_from_file_are_kosher(tmp_path):
 
 @pytest.mark.behavior
 def test_transform_logs_can_be_written_to_file(tmp_path):
-    from dags.helpers.eth.logs.transformer import load_logs_from_file, transform_logs, write_events_to_file
+    from helpers.eth.logs.transformer import load_logs_from_file, transform_logs, write_events_to_file
 
     raw_logs = load_logs_from_file(str(_FIXTURE_LOGS_FILE))
     transformed = transform_logs(raw_logs)

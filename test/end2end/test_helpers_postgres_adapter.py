@@ -1,5 +1,5 @@
 import pytest
-from dags.helpers.postgres.adapter import get_postgres_connection
+from helpers.postgres.adapter import get_postgres_connection
 
 @pytest.mark.e2e
 def test_postgres_connection():
