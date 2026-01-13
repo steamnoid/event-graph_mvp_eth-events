@@ -71,12 +71,17 @@ Non-goal:
 
 No AI/ML. No E2E tests. No timing-based assertions.
 
+Clarification:
+- Avoid UI-driven E2E tests.
+- Docker-based integration/E2E tests are allowed where they validate Airflow/Docker wiring.
+
 Note: Prefer avoiding UI E2E tests. If import/CLI/API validation is insufficient, UI smoke tests (e.g. Playwright) are allowed as a last resort.
 
 ## Airflow DAG conventions (production direction)
 
 - DAG files live under `docker/dags/` and must be import-safe (no network calls, no DB writes at import time).
-- DAG tasks should be thin orchestration only; all logic belongs in tested helper functions under `docker/dags/dag_helper_functions/`.
+- DAG tasks should be thin orchestration only; all logic belongs in tested helper functions under `src/helpers/`.
+	- In the Airflow container, helpers are mounted as a read-only volume under `/opt/airflow/dags/helpers`.
 - Configuration must come from environment variables or Airflow Connections/Variables (no secrets or API keys in code).
 	- Example: `ALCHEMY_URL`, `UNISWAP_PAIR_ADDRESS`, `NEO4J_URI`, `NEO4J_USER`, `NEO4J_PASSWORD`.
 - Tasks must be idempotent:
@@ -88,6 +93,14 @@ Note: Prefer avoiding UI E2E tests. If import/CLI/API validation is insufficient
 - Clean code direction:
 	- Keep helper functions small and pure where possible.
 	- Split I/O from transformation: fetch/normalize/build-edges/write are separate functions.
+
+## Testing scheme (repo reality)
+
+This repo intentionally uses three complementary layers:
+
+- `@pytest.mark.unit`: small, deterministic tests for pure helper functions.
+- `@pytest.mark.behavior`: fixture-driven black-box tests that load deterministic fixtures from `test/fixtures/` and validate end-to-end helper behavior without relying on timing.
+- `@pytest.mark.e2e`: Docker/Airflow wiring tests (e.g., trigger a DAG with a fixture injected via `dag_run.conf`). These should avoid UI automation and avoid timing-based assertions other than eventual state.
 
 ## DAG validation (import + execution)
 
