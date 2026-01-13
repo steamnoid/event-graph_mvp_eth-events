@@ -28,7 +28,7 @@ def test_enrollment_causality_rules_are_identical_across_all_stages(
 		CausalityRules,
 		causality_rules_from_edges,
 		causality_rules_from_events,
-		format_causality_rules_text,
+		render_causality_rules,
 	)
 	from helpers.enrollment.graph import build_edges, write_graph_to_file
 	from helpers.enrollment.neo4j_causality_rules import fetch_causality_model_from_neo4j
@@ -55,15 +55,15 @@ def test_enrollment_causality_rules_are_identical_across_all_stages(
 	fixture_path = tmp_path / "events.json"
 	write_events_to_file(events=raw_events, filename=str(fixture_path))
 	fixture_events = load_events_from_file(str(fixture_path))
-	c1 = format_causality_rules_text(causality_rules_from_events(run_id=run_id, events=fixture_events))
+	c1 = render_causality_rules(causality_rules_from_events(run_id=run_id, events=fixture_events))
 
 	# Stage 2: normalized
 	normalized = normalize_events(fixture_events)
-	c2 = format_causality_rules_text(causality_rules_from_events(run_id=run_id, events=normalized))
+	c2 = render_causality_rules(causality_rules_from_events(run_id=run_id, events=normalized))
 
 	# Stage 3: edges
 	edges = build_edges(normalized)
-	c3 = format_causality_rules_text(
+	c3 = render_causality_rules(
 		causality_rules_from_edges(run_id=run_id, events=normalized, edges=edges)
 	)
 
@@ -71,12 +71,12 @@ def test_enrollment_causality_rules_are_identical_across_all_stages(
 	graph_file = tmp_path / "graph.json"
 	write_graph_to_file(events=normalized, edges=edges, run_id=run_id, filename=str(graph_file))
 	graph = load_graph_from_file(str(graph_file))
-	c4 = format_causality_rules_text(causality_rules_from_edges(run_id=run_id, events=graph["events"], edges=graph["edges"]))
+	c4 = render_causality_rules(causality_rules_from_edges(run_id=run_id, events=graph["events"], edges=graph["edges"]))
 
 	# Stage 5: Neo4j
 	write_graph_to_db(graph)
 	neo_model = fetch_causality_model_from_neo4j(run_id=run_id)
-	c5 = format_causality_rules_text(
+	c5 = render_causality_rules(
 		CausalityRules(
 			run_id=neo_model.run_id,
 			types_by_entity=neo_model.types_by_entity,

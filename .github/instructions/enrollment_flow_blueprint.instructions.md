@@ -2,180 +2,92 @@
 
 ## 0. Purpose
 
-This document describes the **existing ETH→events→graph→Neo4j pipeline** in this repo:
+This document describes the **Enrollment → events → graph → Neo4j** pipeline in this repo:
 
-- how the Airflow DAG is structured
+- how the Enrollment Airflow DAG is structured
 - which helper modules implement the real logic
 - how fixtures are used to make tests deterministic
-- how unit/behavior/e2e tests fit together
+- how unit/behavior/functional/e2e tests fit together
 
-It also defines the **blueprint** for implementing an analogous pipeline for **Enrollment Events**:
-
-- same “thin DAG + tested helpers” architecture
-- same fixture-driven behavior tests
-- deterministic, post-factum processing
-
-This blueprint is intended to be followed when building the Enrollment flow.
+This blueprint is intended to keep the Enrollment flow coherent: thin DAG + tested helpers + deterministic artifacts.
 
 ---
 
-## 1. The current ETH flow (what exists today)
+## 1. Enrollment flow (what exists today)
 
 ### 1.1 End-to-end DAG structure
 
-The Airflow DAG is: `docker/dags/eth_to_neo4j_graph_dag.py`
+The Airflow DAG is: `docker/dags/enrollment_to_neo4j_graph_dag.py`
 
-It is intentionally a **thin orchestrator** with file-based handoffs between steps:
+It is intentionally a **thin orchestrator** with file-based handoffs between steps.
+Artifacts are written under `/opt/airflow/logs/eventgraph/<run_id>/`.
 
-1) `fetch_logs_to_file`
-- writes `raw_logs.json`
-- supports deterministic runs by allowing a fixture path injection via `dag_run.conf["source_logs_file"]`
+The DAG supports deterministic runs via:
 
-2) `transform_logs_to_events_file`
-- reads `raw_logs.json`
-- writes `events.json` (normalized events)
+- `dag_run.conf["source_events_file"]` → JSON array or NDJSON
+- optional `dag_run.conf["source_rules_file"]` → C0 rules text (if provided, assert `C0 == C1`)
 
-3) `transform_events_to_graph_file`
-- reads `events.json`
-- writes `graph.json` containing `{run_id, events, edges}`
+Validation tasks write and compare canonical causality artifacts:
 
-4) `write_graph_to_neo4j`
-- reads `graph.json`
-- writes nodes/edges to Neo4j
-
-Why file handoffs?
-- makes each stage replayable
-- simplifies debugging
-- allows deterministic tests by “pinning input” via fixtures
-- avoids reconstructing state from time/order
+- `C1.txt` after raw events load
+- `C2.txt` after normalization
+- `C3.txt` after edges
+- `C4.txt` after graph file
+- `C5.txt` after Neo4j write (readback)
 
 ### 1.2 Helper module responsibilities (real logic lives here)
 
 Helpers live under `src/helpers/`.
 
-In Docker Airflow, helpers are mounted read-only to `/opt/airflow/dags/helpers` (see `docker/docker-compose.yml`).
+In Docker Airflow, helpers are mounted read-only to `/opt/airflow/dags/helpers`.
 
-#### ETH input (I/O)
-
-- `src/helpers/eth/adapter.py`
-  - fetches logs from RPC (`fetch_logs`) when environment variables are present
-  - **serializes** logs to a JSON-serializable representation (`write_logs_to_file`) so fixtures can be committed and replayed
-
-#### ETH decoding (pure / deterministic)
-
-- `src/helpers/eth/logs/decoder.py`
-  - maps `topic0` to known event names
-  - decodes ABI payloads for supported events
-  - returns `{"event_name": ..., "decoded": ...}`
-
-#### ETH normalization
-
-- `src/helpers/eth/logs/transformer.py`
-  - `load_logs_from_file()` loads raw logs fixture
-  - `transform_logs()` produces a normalized event list with stable identity:
-    - `event_id = tx_hash + ":" + log_index`
-    - and convenience fields like `tx_hash`, `log_index`, `event_name`, `decoded`
-  - `write_events_to_file()` persists normalized events
-
-#### Causal graph construction (no timestamps, no workflow inference)
-
-- `src/helpers/neo4j/transformer.py`
-  - groups events by `tx_hash`
-  - sorts by `log_index`
-  - applies local causal rules (same transaction, `parent.log_index < child.log_index`)
-  - emits edges as `{"from": parent_event_id, "to": child_event_id}`
-
-#### Graph persistence
-
-- `src/helpers/neo4j/adapter.py`
-  - writes `(:Run {run_id})` snapshot
-  - merges `(:Event {event_id})`
-  - creates `(:Event)-[:CAUSES]->(:Event)` relationships
+- `src/helpers/enrollment/adapter.py`: load raw events fixture (JSON / NDJSON)
+- `src/helpers/enrollment/transformer.py`: normalize events into a stable schema
+- `src/helpers/enrollment/graph.py`: build edges from declared parents (no inference)
+- `src/helpers/enrollment/validator.py`: schema checks + cross-stage C1..C5 equality checks
+- `src/helpers/enrollment/artifacts.py`: run directory + artifact file read/write
+- `src/helpers/neo4j/adapter.py`: persist and read back the run subgraph
 
 ---
 
-## 2. Test strategy in this repo (TDD-shaped)
-
-The repo follows a TDD-style layering:
+## 2. Test strategy (layered, fixture-driven)
 
 ### 2.1 Unit tests (`@pytest.mark.unit`)
 
-Goal: fast feedback for pure functions.
-
-Examples:
-- `test/unit/test_helpers_eth_decoder.py`
-  - decodes individual event fixtures (`erc20_transfer.json`, `uniswap_v2_swap.json`, …)
-  - asserts exact decoded output
-
-- `test/unit/test_helpers_neo4j_transformer_unit.py`
-  - builds tiny event lists and asserts exact edge outputs
+Goal: fast feedback for pure helper functions.
 
 ### 2.2 Behavior tests (`@pytest.mark.behavior`)
 
 Goal: deterministic black-box validation using committed fixtures.
 
 Key pattern:
-- behavior tests load `test/fixtures/eth_logs/fetch_logs_uniswap_v2_weth_usdc.json`
-- then run multiple helper stages end-to-end (filesystem-based)
-- assertions focus on **invariants** and **schema correctness**, not timing
 
-Examples:
-- `test/behavior/test_helpers_eth_transformer.py`
-  - ensures all fixture logs decode to known events
-  - ensures write→read roundtrips remain decoder-compatible
+- load fixtures from `test/fixtures/events/`
+- run multiple helper stages end-to-end using file handoffs
+- assertions focus on invariants and schema correctness, not timing
 
-- `test/behavior/test_helpers_neo4j_transformer.py`
-  - full stack: fixture → normalized events → edges → graph file
-  - validates every edge respects same-tx + increasing log index
-  - includes a Neo4j write/read assertion (still fixture-driven, but requires Neo4j)
+### 2.3 Functional tests (`@pytest.mark.functional`)
 
-### 2.3 E2E tests (`@pytest.mark.e2e`)
+Goal: black-box validation of the synthetic generator.
+
+### 2.4 E2E tests (`@pytest.mark.e2e`)
 
 Goal: validate Docker/Airflow wiring and service readiness.
 
-Key pattern for deterministic DAG execution:
+Key pattern:
+
 - copy a committed fixture into the Airflow shared logs volume
-- trigger a DAG run with `dag_run.conf["source_logs_file"]` pointing at that file
-
-Preferred polling/verification (avoid direct Postgres queries):
-- poll for deterministic filesystem artifacts under the shared logs volume
-  (e.g. wait for `C5.txt` in `/opt/airflow/logs/eventgraph/<run_id>/`)
-
-Example:
-- `test/behavior/test_airflow_dag_eth_to_neo4j_graph.py` (marked `e2e`)
+- trigger the DAG with `dag_run.conf` pointing at that fixture
+- poll for deterministic artifacts under `/opt/airflow/logs/eventgraph/<run_id>/` (for example `C5.txt`)
 
 Important:
+
 - avoid UI-driven E2E
-- no timing-based assertions beyond eventual completion (timeouts are infrastructure, not behavior)
+- no timing-based assertions beyond eventual completion
 
 ---
 
-## 3. Fixture management
-
-### 3.1 Canonical ETH fixture
-
-- `test/fixtures/eth_logs/fetch_logs_uniswap_v2_weth_usdc.json` is the deterministic input for behavior tests.
-
-### 3.2 Refresh script
-
-- `scripts/refresh_behavior_fixture.py` fetches logs from RPC and refreshes the shared fixture.
-
-Constraints:
-- refreshing a fixture is an explicit action (not done in tests)
-- committed fixtures must remain JSON-serializable and decoder-compatible
-
----
-
-## 4. Blueprint for Enrollment Events (what we will build next)
-
-### 4.1 High-level rule
-
-Enrollment pipeline MUST follow the same structure, but MUST be delivered in two stages:
-
-- Stage A (helpers first): implement + test the helper pipeline end-to-end **without Airflow DAG**
-- Stage B (orchestration): add a thin Airflow DAG + deterministic DAG e2e test
-
-The intent is to keep core logic testable and deterministic before any orchestration wiring.
+## 3. Non-negotiables
 
 The Enrollment pipeline MUST follow the same overall structure:
 
@@ -183,12 +95,11 @@ The Enrollment pipeline MUST follow the same overall structure:
 - real logic in `src/helpers/...`
 - deterministic behavior tests driven by committed fixtures
 
-Additional rule for Enrollment DAGs:
+Additional rule:
+
 - DAG files are wiring only. All transformation, validation, saving, and loading must live in helper modules and be test-covered.
 
-### 4.2 Suggested module layout
-
-Use a parallel structure to ETH helpers:
+### 4.1 Module layout
 
 - `src/helpers/enrollment/adapter.py`
   - file I/O and any external I/O (if any)
@@ -207,13 +118,13 @@ Use a parallel structure to ETH helpers:
 
 - `src/helpers/neo4j/adapter.py` reused for persistence
 
-### 4.3 Enrollment fixtures
+### 4.2 Enrollment fixtures
 
 - fixtures live under `test/fixtures/events/` (JSON array or NDJSON)
 - fixtures are generated deterministically using the synthetic generator
   - e.g. `scripts/generate_event_generator_fixture.py`
 
-### 4.4 Enrollment behavior tests (fixture-driven)
+### 4.3 Enrollment behavior tests (fixture-driven)
 
 Write `@pytest.mark.behavior` tests that:
 
@@ -222,7 +133,7 @@ Write `@pytest.mark.behavior` tests that:
 - validate graph-shape declarations when using a consistent fixture
 - validate that graph edges (if created) reference existing IDs and respect declared causality
 
-### 4.5 Enrollment helper e2e (deterministic, NO DAG)
+### 4.4 Enrollment helper e2e (deterministic, NO DAG)
 
 Before adding any Enrollment DAG, add an `@pytest.mark.e2e` test that validates the Enrollment flow end-to-end by calling helpers directly.
 
@@ -238,7 +149,7 @@ Pattern:
 
 This test MUST NOT import or execute an Airflow DAG.
 
-### 4.6 Enrollment DAG e2e (deterministic, later)
+### 4.5 Enrollment DAG e2e (deterministic)
 
 Only after Stage A is complete, add an `@pytest.mark.e2e` test that triggers the enrollment DAG using the same injection pattern:
 

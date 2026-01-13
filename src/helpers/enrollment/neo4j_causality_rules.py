@@ -7,7 +7,7 @@ from typing import Any, Dict, Iterable, List, Sequence, Tuple
 from neo4j import GraphDatabase
 
 from helpers.enrollment.canonical import canonical_edges, canonical_types
-from helpers.enrollment.causality_rules import CausalityRules, format_causality_rules_text
+from helpers.enrollment.causality_rules import CausalityRules, render_causality_rules
 
 
 @dataclass(frozen=True)
@@ -17,15 +17,14 @@ class CausalityModel:
 	types_by_entity: Dict[str, List[str]]
 
 
-def _neo4j_config() -> tuple[str, str, str]:
-	uri = os.getenv("NEO4J_URI", "neo4j://localhost:7687")
-	user = os.getenv("NEO4J_USER", "neo4j")
-	password = os.getenv("NEO4J_PASSWORD", "test")
-	return uri, user, password
+def persist_causality_rules(*, run_id: str, out_file: str, expect_canonical: bool = False) -> None:
+	model = fetch_causality_model_from_neo4j(run_id=run_id)
+	if expect_canonical:
+		_assert_canonical_and_identical(model)
 
-
-def _canonical_types_and_edges() -> tuple[set[str], set[tuple[str, str]]]:
-	return canonical_types(), canonical_edges()
+	text = render_causality_rules(_as_rules(model))
+	with open(out_file, "w", encoding="utf-8") as f:
+		f.write(text)
 
 
 def fetch_causality_model_from_neo4j(*, run_id: str) -> CausalityModel:
@@ -124,11 +123,12 @@ def _assert_canonical_and_identical(model: CausalityModel) -> None:
 			raise AssertionError(f"entity {entity_id}: edges not identical to {reference}")
 
 
-def export_causality_rules_text(*, run_id: str, out_file: str, expect_canonical: bool = False) -> None:
-	model = fetch_causality_model_from_neo4j(run_id=run_id)
-	if expect_canonical:
-		_assert_canonical_and_identical(model)
+def _neo4j_config() -> tuple[str, str, str]:
+	uri = os.getenv("NEO4J_URI", "neo4j://localhost:7687")
+	user = os.getenv("NEO4J_USER", "neo4j")
+	password = os.getenv("NEO4J_PASSWORD", "test")
+	return uri, user, password
 
-	text = format_causality_rules_text(_as_rules(model))
-	with open(out_file, "w", encoding="utf-8") as f:
-		f.write(text)
+
+def _canonical_types_and_edges() -> tuple[set[str], set[tuple[str, str]]]:
+	return canonical_types(), canonical_edges()

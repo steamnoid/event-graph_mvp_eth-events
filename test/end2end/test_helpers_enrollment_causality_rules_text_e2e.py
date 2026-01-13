@@ -15,7 +15,7 @@ def test_enrollment_causality_rules_export_text_is_canonical_and_identical(tmp_p
 	from helpers.neo4j.adapter import load_graph_from_file, write_graph_to_db
 
 	# New behavior under test (should be implemented in helpers, not only as an ad-hoc script).
-	from helpers.enrollment.neo4j_causality_rules import export_causality_rules_text
+	from helpers.enrollment.neo4j_causality_rules import persist_causality_rules
 
 	seed = 1337
 	entity_count = 4
@@ -37,7 +37,7 @@ def test_enrollment_causality_rules_export_text_is_canonical_and_identical(tmp_p
 	write_graph_to_db(graph)
 
 	out_file = tmp_path / "causality.txt"
-	export_causality_rules_text(run_id=run_id, out_file=str(out_file), expect_canonical=True)
+	persist_causality_rules(run_id=run_id, out_file=str(out_file), expect_canonical=True)
 
 	text = out_file.read_text(encoding="utf-8")
 	assert "run_id=" in text

@@ -10,6 +10,18 @@ Event = Dict[str, Any]
 ValidationMode = Literal["consistent", "inconsistent"]
 
 
+_REQUIRED_KEYS = {
+	"event_id",
+	"event_type",
+	"event_kind",
+	"parent_event_ids",
+	"layer",
+	"entity_id",
+	"payload",
+	"emitted_at",
+}
+
+
 _CANONICAL: Dict[str, Tuple[str, str, Sequence[str]]] = {
 	"CourseEnrollmentRequested": ("fact", "L0", ()),
 	"PaymentProcessingRequested": ("fact", "L1", ("CourseEnrollmentRequested",)),
@@ -37,6 +49,31 @@ class ValidationResult:
 	errors: Tuple[str, ...] = ()
 
 
+def validate_events(events: Sequence[Event], *, mode: ValidationMode) -> ValidationResult:
+	errors: List[str] = []
+
+	if not events:
+		errors.append("no events found")
+		return ValidationResult(is_valid=False, errors=tuple(errors))
+
+	_append_basic_schema_errors(errors=errors, events=events)
+
+	event_ids = _collect_event_ids(events)
+	_append_event_id_uniqueness_errors(errors=errors, event_ids=event_ids)
+	_append_parent_id_reference_errors(errors=errors, events=events, event_ids=event_ids)
+
+	if mode == "consistent":
+		_append_consistency_errors(errors=errors, events=events)
+
+	return ValidationResult(is_valid=(len(errors) == 0), errors=tuple(errors))
+
+
+def validate_events_file(path: str | Path, *, mode: ValidationMode) -> ValidationResult:
+	path = Path(path)
+	events = _load_events(path)
+	return validate_events(events, mode=mode)
+
+
 def _load_events(path: Path) -> List[Event]:
 	text = path.read_text(encoding="utf-8").strip()
 	if not text:
@@ -58,26 +95,9 @@ def _load_events(path: Path) -> List[Event]:
 	return events
 
 
-def validate_events(events: Sequence[Event], *, mode: ValidationMode) -> ValidationResult:
-	errors: List[str] = []
-
-	required_keys = {
-		"event_id",
-		"event_type",
-		"event_kind",
-		"parent_event_ids",
-		"layer",
-		"entity_id",
-		"payload",
-		"emitted_at",
-	}
-
-	if not events:
-		errors.append("no events found")
-		return ValidationResult(is_valid=False, errors=tuple(errors))
-
+def _append_basic_schema_errors(*, errors: List[str], events: Sequence[Event]) -> None:
 	for idx, event in enumerate(events):
-		missing = required_keys.difference(event.keys())
+		missing = _REQUIRED_KEYS.difference(event.keys())
 		if missing:
 			errors.append(f"event[{idx}] missing keys: {sorted(missing)}")
 			continue
@@ -90,77 +110,64 @@ def validate_events(events: Sequence[Event], *, mode: ValidationMode) -> Validat
 			continue
 
 		if event["event_kind"] == "fact" and len(event["parent_event_ids"]) > 1:
-			errors.append(
-				f"event[{idx}] fact has >1 parent: {event['event_type']}"
-			)
+			errors.append(f"event[{idx}] fact has >1 parent: {event['event_type']}")
 
-	event_ids = [e.get("event_id") for e in events if isinstance(e, dict)]
+
+def _collect_event_ids(events: Sequence[Event]) -> List[Any]:
+	return [e.get("event_id") for e in events if isinstance(e, dict)]
+
+
+def _append_event_id_uniqueness_errors(*, errors: List[str], event_ids: List[Any]) -> None:
 	if len(set(event_ids)) != len(event_ids):
 		errors.append("event_id values must be unique")
 
+
+def _append_parent_id_reference_errors(*, errors: List[str], events: Sequence[Event], event_ids: List[Any]) -> None:
 	all_ids = set(event_ids)
 	for idx, event in enumerate(events):
 		if not isinstance(event, dict) or "parent_event_ids" not in event:
 			continue
 		for parent_id in event["parent_event_ids"]:
 			if parent_id not in all_ids:
+				errors.append(f"event[{idx}] parent_event_id not found in file: {parent_id}")
+
+
+def _append_consistency_errors(*, errors: List[str], events: Sequence[Event]) -> None:
+	by_entity = _index_events_by_entity_and_type(events)
+	for entity_id, type_map in by_entity.items():
+		missing_types = set(_CANONICAL.keys()).difference(type_map.keys())
+		if missing_types:
+			errors.append(f"entity {entity_id} missing event types: {sorted(missing_types)}")
+			continue
+
+		for event_type, (kind, layer, parent_types) in _CANONICAL.items():
+			event = type_map[event_type]
+			if event["event_kind"] != kind:
+				errors.append(f"entity {entity_id} {event_type} wrong kind: {event['event_kind']}")
+			if event["layer"] != layer:
+				errors.append(f"entity {entity_id} {event_type} wrong layer: {event['layer']}")
+
+			parent_ids_expected = [type_map[p]["event_id"] for p in parent_types]
+			if kind == "decision" and event_type == "AccessGranted":
+				if set(event["parent_event_ids"]) != set(parent_ids_expected):
+					errors.append(f"entity {entity_id} AccessGranted parents mismatch")
+			else:
+				if event["parent_event_ids"] != parent_ids_expected:
+					errors.append(f"entity {entity_id} {event_type} parents mismatch")
+
+			expected_id = f"{entity_id}:{event_type}"
+			if event["event_id"] != expected_id:
 				errors.append(
-					f"event[{idx}] parent_event_id not found in file: {parent_id}"
-				)
-
-	if mode == "consistent":
-		by_entity: Dict[str, Dict[str, Event]] = {}
-		for event in events:
-			entity_id = event.get("entity_id")
-			event_type = event.get("event_type")
-			if not isinstance(entity_id, str) or not isinstance(event_type, str):
-				continue
-			by_entity.setdefault(entity_id, {})[event_type] = event
-
-		for entity_id, type_map in by_entity.items():
-			# Require all canonical event types for each entity.
-			missing_types = set(_CANONICAL.keys()).difference(type_map.keys())
-			if missing_types:
-				errors.append(
-					f"entity {entity_id} missing event types: {sorted(missing_types)}"
-				)
-				continue
-
-			for event_type, (kind, layer, parent_types) in _CANONICAL.items():
-				event = type_map[event_type]
-				if event["event_kind"] != kind:
-					errors.append(
-						f"entity {entity_id} {event_type} wrong kind: {event['event_kind']}"
-					)
-				if event["layer"] != layer:
-					errors.append(
-						f"entity {entity_id} {event_type} wrong layer: {event['layer']}"
-					)
-
-				# Validate declared parent relationships match canonical declarations.
-				parent_ids_expected = [type_map[p]["event_id"] for p in parent_types]
-				if kind == "decision" and event_type == "AccessGranted":
-					if set(event["parent_event_ids"]) != set(parent_ids_expected):
-						errors.append(
-							f"entity {entity_id} AccessGranted parents mismatch"
-						)
-				else:
-					if event["parent_event_ids"] != parent_ids_expected:
-						errors.append(
-							f"entity {entity_id} {event_type} parents mismatch"
-						)
-
-				# Optional sanity: expected id format.
-				expected_id = f"{entity_id}:{event_type}"
-				if event["event_id"] != expected_id:
-					errors.append(
-						f"entity {entity_id} {event_type} unexpected event_id: {event['event_id']}"
-					)
-
-	return ValidationResult(is_valid=(len(errors) == 0), errors=tuple(errors))
+				f"entity {entity_id} {event_type} unexpected event_id: {event['event_id']}"
+			)
 
 
-def validate_events_file(path: str | Path, *, mode: ValidationMode) -> ValidationResult:
-	path = Path(path)
-	events = _load_events(path)
-	return validate_events(events, mode=mode)
+def _index_events_by_entity_and_type(events: Sequence[Event]) -> Dict[str, Dict[str, Event]]:
+	by_entity: Dict[str, Dict[str, Event]] = {}
+	for event in events:
+		entity_id = event.get("entity_id")
+		event_type = event.get("event_type")
+		if not isinstance(entity_id, str) or not isinstance(event_type, str):
+			continue
+		by_entity.setdefault(entity_id, {})[event_type] = event
+	return by_entity

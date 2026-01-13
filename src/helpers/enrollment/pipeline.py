@@ -1,13 +1,16 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Optional
+from typing import Any, Optional
 
 from helpers.enrollment import artifacts
 from helpers.enrollment import validator
 
 
 DEFAULT_ARTIFACT_ROOT = artifacts.DEFAULT_ARTIFACT_ROOT
+
+
+Event = dict[str, Any]
 
 
 def run_dir(*, run_id: str, artifact_root: str = DEFAULT_ARTIFACT_ROOT) -> Path:
@@ -27,11 +30,10 @@ def fetch_events_to_file(
 	If source_rules_file is provided, it is copied to C0.txt.
 	"""
 
-	run_path = artifacts.run_dir(run_id=run_id, artifact_root=artifact_root)
-
+	# Extract / Load (artifact handoff)
+	run_path = _get_run_directory(run_id=run_id, artifact_root=artifact_root)
 	if source_rules_file:
 		artifacts.copy_text_file(source_file=source_rules_file, dest_file=run_path / "C0.txt")
-
 	return artifacts.copy_text_file(source_file=source_events_file, dest_file=run_path / "events.json")
 
 
@@ -57,15 +59,17 @@ def transform_events_to_normalized_file(
 ) -> str:
 	"""Stage C2: normalize events and write normalized_events.json."""
 
-	run_path = artifacts.run_dir(run_id=run_id, artifact_root=artifact_root)
-
-	from helpers.enrollment.adapter import load_events_from_file
 	from helpers.enrollment.transformer import normalize_events
 
-	raw_events = load_events_from_file(events_file)
+	# Extract
+	run_path = _get_run_directory(run_id=run_id, artifact_root=artifact_root)
+	raw_events = _load_event_batch(events_file)
+
+	# Transform
 	normalized = normalize_events(raw_events)
-	out_file = run_path / "normalized_events.json"
-	return artifacts.write_json(path=out_file, payload=normalized)
+
+	# Load
+	return _store_run_artifact(run_path=run_path, name="normalized_events.json", payload=normalized)
 
 
 def validate_normalized_events(
@@ -91,15 +95,17 @@ def transform_normalized_to_edges_file(
 ) -> str:
 	"""Stage C3: build edges from declared parent_event_ids and write edges.json."""
 
-	run_path = artifacts.run_dir(run_id=run_id, artifact_root=artifact_root)
-
-	from helpers.enrollment.adapter import load_events_from_file
 	from helpers.enrollment.graph import build_edges
 
-	normalized = load_events_from_file(normalized_file)
+	# Extract
+	run_path = _get_run_directory(run_id=run_id, artifact_root=artifact_root)
+	normalized = _load_event_batch(normalized_file)
+
+	# Transform
 	edges = build_edges(normalized)
-	out_file = run_path / "edges.json"
-	return artifacts.write_json(path=out_file, payload=edges)
+
+	# Load
+	return _store_run_artifact(run_path=run_path, name="edges.json", payload=edges)
 
 
 def validate_edges(
@@ -128,13 +134,14 @@ def transform_edges_to_graph_file(
 ) -> str:
 	"""Stage C4: write graph.json {run_id, events, edges}."""
 
-	run_path = artifacts.run_dir(run_id=run_id, artifact_root=artifact_root)
-
-	from helpers.enrollment.adapter import load_events_from_file
 	from helpers.enrollment.graph import write_graph_to_file
 
-	normalized = load_events_from_file(normalized_file)
-	edges = load_events_from_file(edges_file)
+	# Extract
+	run_path = _get_run_directory(run_id=run_id, artifact_root=artifact_root)
+	normalized = _load_event_batch(normalized_file)
+	edges = _load_event_batch(edges_file)
+
+	# Transform / Load (graph is a materialized artifact)
 	out_file = run_path / "graph.json"
 	write_graph_to_file(events=normalized, edges=edges, run_id=run_id, filename=str(out_file))
 	return str(out_file)
@@ -174,3 +181,21 @@ def validate_neo4j_readback(
 		expect_canonical=expect_canonical,
 		artifact_root=artifact_root,
 	)
+
+
+def _get_run_directory(*, run_id: str, artifact_root: str) -> Path:
+	return artifacts.run_dir(run_id=run_id, artifact_root=artifact_root)
+
+
+def _load_event_batch(source: str) -> list[Event]:
+	from helpers.enrollment.adapter import load_events_from_file
+
+	return load_events_from_file(source)
+
+
+def _store_run_artifact(*, run_path: Path, name: str, payload: Any) -> str:
+	"""Persist a run-scoped artifact.
+
+	Storage mechanics (format, filesystem) are an implementation detail.
+	"""
+	return artifacts.write_json(path=run_path / name, payload=payload)

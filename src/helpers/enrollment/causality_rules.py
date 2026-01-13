@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any, Dict, Iterable, List, Tuple
+from typing import Any, Dict, Iterable, List, Optional, Tuple
 
 
 Event = dict[str, Any]
@@ -15,7 +15,7 @@ class CausalityRules:
 	edges_by_entity: dict[str, list[tuple[str, str]]]
 
 
-def format_causality_rules_text(rules: CausalityRules) -> str:
+def render_causality_rules(rules: CausalityRules) -> str:
 	lines: list[str] = []
 	lines.append(f"run_id={rules.run_id}")
 
@@ -33,13 +33,13 @@ def format_causality_rules_text(rules: CausalityRules) -> str:
 	return "\n".join(lines) + "\n"
 
 
-def parse_causality_rules_text(text: str) -> CausalityRules:
+def parse_causality_rules(text: str) -> CausalityRules:
 	run_id = ""
 	types_by_entity: dict[str, list[str]] = {}
 	edges_by_entity: dict[str, list[tuple[str, str]]] = {}
 
-	current_entity: str | None = None
-	section: str | None = None
+	current_entity: Optional[str] = None
+	section: Optional[str] = None
 
 	for raw_line in text.splitlines():
 		line = raw_line.strip()

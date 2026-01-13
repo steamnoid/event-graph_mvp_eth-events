@@ -1,12 +1,13 @@
-# Event Graph MVP — Ethereum Events → Neo4j
+# Event Graph MVP — Enrollment Events → Neo4j
 
-This repository is an MVP that demonstrates how to turn on-chain Ethereum logs into a **causal event graph**:
+This repository is an MVP that demonstrates how to turn **synthetic Enrollment events** into a **causal event graph**:
 
-- raw logs (fixture or RPC) → normalized `Event` records
-- deterministic, local causality (`:CAUSES`) edges
-- persistence into Neo4j for querying **graph invariants** and behavior analysis
+- declared-causality rules text (C0) → events fixture (JSON / NDJSON)
+- normalization → edges → graph file
+- persistence into Neo4j
+- deterministic validation via canonical causality artifacts C0..C5
 
-The goal is to make correctness and system behavior analyzable as **structure** (graphs) rather than fragile, timing-based end-to-end assertions.
+The goal is to make correctness and system behavior analyzable as **structure** (graphs), using upstream-declared causality instead of timestamps or workflow inference.
 
 ## Reading (4 articles)
 
@@ -23,16 +24,16 @@ This project is directly inspired by the following series:
 
 ## Project intent (short)
 
-- Treat each on-chain event as an **atomic fact** with stable identity: `event_id = tx_hash:log_index`.
-- Build a minimal, deterministic event graph where edges always represent **local causal truth** (same transaction and ordered by log index).
-- Use Neo4j + Cypher to validate invariants and explore behavior without relying on “sleep/retry” or timestamp heuristics.
+- Upstream declares causality; downstream validates declarations.
+- Every stage renders the same canonical causality rules text and asserts equality across stages.
+- Use Neo4j + Cypher to validate invariants and explore behavior without timing-based assertions.
 
 ## Repo layout (high level)
 
-- `docker/` — docker-compose stack (Airflow + Postgres + Neo4j) and DAG/helper code
-- `docker/dags/helpers/` — Python helpers (ETH decode/transform, Neo4j transform/adapter)
-- `test/` — pytest suite (unit/behavior/end2end)
-- `test/fixtures/eth_logs/` — deterministic fixture logs used by tests
+- `docker/` — docker-compose stack (Airflow + Postgres + Neo4j) and DAG wiring
+- `src/helpers/` — Enrollment + Neo4j helpers (real logic)
+- `test/` — pytest suite (unit/behavior/end2end/functional)
+- `test/fixtures/events/` — deterministic Enrollment fixtures (JSON / NDJSON)
 
 ## Running services (Docker)
 
@@ -44,7 +45,6 @@ From the `docker/` directory:
 
 Environment:
 
-- Optional: set `ALCHEMY_URL` (used by live-RPC ingestion paths). If not set, fixture-based tests still run.
 - Airflow container deps are installed via `_PIP_ADDITIONAL_REQUIREMENTS` from `docker/requirements-airflow.txt`.
 
 ## Running tests (host)
@@ -61,5 +61,5 @@ If you don’t have a venv yet, create one (example):
 
 ## Notes
 
-- This repository follows **strict TDD** (Red → Green → Refactor).
-- Causality is intentionally conservative: no timestamp-based inference, no heuristics, no aggregation.
+- The generator is specified in `.github/instructions/events_generator.instructions.md`.
+- Causality is based on explicit parent declarations; downstream must not infer workflow.

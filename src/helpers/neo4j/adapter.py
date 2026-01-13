@@ -10,15 +10,6 @@ _CAMEL_1 = re.compile(r"([A-Z]+)([A-Z][a-z])")
 _CAMEL_2 = re.compile(r"([a-z0-9])([A-Z])")
 
 
-def _camelcase_to_words(value: Optional[str]) -> Optional[str]:
-	if not value:
-		return None
-	# Split: "HTTPServerError" -> "HTTP Server Error", "CourseEnrollmentRequested" -> "Course Enrollment Requested"
-	value = _CAMEL_1.sub(r"\1 \2", value)
-	value = _CAMEL_2.sub(r"\1 \2", value)
-	return value
-
-
 def load_graph_from_file(filename: str) -> dict:
 	with open(filename, "r", encoding="utf-8") as f:
 		return json.load(f)
@@ -29,13 +20,6 @@ def task_write_graph_to_neo4j(graph_file: str, **_context) -> int:
 	graph = load_graph_from_file(graph_file)
 	write_graph_to_db(graph)
 	return 0
-
-
-def _neo4j_config() -> tuple[str, str, str]:
-	uri = os.getenv("NEO4J_URI", "neo4j://localhost:7687")
-	user = os.getenv("NEO4J_USER", "neo4j")
-	password = os.getenv("NEO4J_PASSWORD", "test")
-	return uri, user, password
 
 
 def write_graph_to_db(graph: dict) -> None:
@@ -85,7 +69,7 @@ def write_graph_to_db(graph: dict) -> None:
 				if not event_id:
 					continue
 
-				# Enrollment events carry `entity_id` and `event_type`; ETH events carry `tx_hash` etc.
+				# Enrollment events are normalized to include `entity_id` and `event_type`.
 				entity_id = event.get("entity_id")
 				event_type = event.get("event_type")
 				event_kind = event.get("event_kind")
@@ -97,15 +81,11 @@ def write_graph_to_db(graph: dict) -> None:
 				# Keep `event_type` canonical; only adjust the display-oriented `event_name`.
 				if entity_id is not None and event_type_words:
 					event_name = event_type_words
-				tx_hash = event.get("tx_hash")
-				log_index = event.get("log_index")
 
 				session.run(
 					"""
 					MERGE (e:Event {event_id: $event_id})
-					SET e.tx_hash = $tx_hash,
-						e.log_index = $log_index,
-						e.event_name = $event_name,
+					SET e.event_name = $event_name,
 						e.entity_id = $entity_id,
 						e.event_type = $event_type,
 						e.event_type_words = $event_type_words,
@@ -113,11 +93,8 @@ def write_graph_to_db(graph: dict) -> None:
 						e.layer = $layer,
 						e.emitted_at = $emitted_at
 					FOREACH (_ IN CASE WHEN $entity_id IS NULL THEN [] ELSE [1] END | SET e:EnrollmentEvent)
-					FOREACH (_ IN CASE WHEN $tx_hash IS NULL THEN [] ELSE [1] END | SET e:EthEvent)
 					""",
 					event_id=event_id,
-					tx_hash=tx_hash,
-					log_index=log_index,
 					event_name=event_name,
 					entity_id=entity_id,
 					event_type=event_type,
@@ -155,3 +132,19 @@ def write_graph_to_db(graph: dict) -> None:
 				)
 	finally:
 		driver.close()
+
+
+def _neo4j_config() -> tuple[str, str, str]:
+	uri = os.getenv("NEO4J_URI", "neo4j://localhost:7687")
+	user = os.getenv("NEO4J_USER", "neo4j")
+	password = os.getenv("NEO4J_PASSWORD", "test")
+	return uri, user, password
+
+
+def _camelcase_to_words(value: Optional[str]) -> Optional[str]:
+	if not value:
+		return None
+	# Split: "HTTPServerError" -> "HTTP Server Error", "CourseEnrollmentRequested" -> "Course Enrollment Requested"
+	value = _CAMEL_1.sub(r"\1 \2", value)
+	value = _CAMEL_2.sub(r"\1 \2", value)
+	return value

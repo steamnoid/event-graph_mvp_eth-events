@@ -26,7 +26,6 @@ The following components must always run in Docker containers:
 - PostgreSQL (Airflow metadata DB)
 
 ### Optional
-- Local Ethereum RPC (Anvil / Geth)
 - Development utilities
 
 ---
@@ -51,7 +50,7 @@ Airflow runtime context.
 
 Constraints for this exception:
 - Tests must be deterministic and have no side effects at import time.
-- No network calls to Ethereum RPC from host-run tests.
+- No external network calls from host-run tests.
 - If Neo4j/PostgreSQL are needed, they must still run in Docker and be accessed
   via explicit host ports.
 
