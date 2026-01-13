@@ -4,6 +4,14 @@ from typing import Any, List
 Event = dict[str, Any]
 
 
+def task_transform_events_to_normalized_file(events_file: str, **context) -> str:
+	"""Airflow task callable: Stage C2 transform."""
+	from helpers.enrollment import pipeline
+
+	run_id = str(context.get("run_id") or "manual")
+	return pipeline.transform_events_to_normalized_file(run_id=run_id, events_file=events_file)
+
+
 _REQUIRED_KEYS = {
 	"event_id",
 	"event_type",

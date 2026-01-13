@@ -136,7 +136,10 @@ Goal: validate Docker/Airflow wiring and service readiness.
 Key pattern for deterministic DAG execution:
 - copy a committed fixture into the Airflow shared logs volume
 - trigger a DAG run with `dag_run.conf["source_logs_file"]` pointing at that file
-- poll Airflow metadata DB (Postgres) until tasks reach terminal state
+
+Preferred polling/verification (avoid direct Postgres queries):
+- poll for deterministic filesystem artifacts under the shared logs volume
+  (e.g. wait for `C5.txt` in `/opt/airflow/logs/eventgraph/<run_id>/`)
 
 Example:
 - `test/behavior/test_airflow_dag_eth_to_neo4j_graph.py` (marked `e2e`)
@@ -180,12 +183,21 @@ The Enrollment pipeline MUST follow the same overall structure:
 - real logic in `src/helpers/...`
 - deterministic behavior tests driven by committed fixtures
 
+Additional rule for Enrollment DAGs:
+- DAG files are wiring only. All transformation, validation, saving, and loading must live in helper modules and be test-covered.
+
 ### 4.2 Suggested module layout
 
 Use a parallel structure to ETH helpers:
 
 - `src/helpers/enrollment/adapter.py`
   - file I/O and any external I/O (if any)
+
+- `src/helpers/enrollment/artifacts.py`
+  - artifact directory handling and writing intermediate artifacts (events/normalized/edges/graph/Ck)
+
+- `src/helpers/enrollment/validator.py`
+  - schema validation and cross-stage equality checks (C1==C2==...==C5)
 
 - `src/helpers/enrollment/transformer.py`
   - normalization of enrollment events into a stable schema

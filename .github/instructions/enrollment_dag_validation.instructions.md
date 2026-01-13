@@ -8,6 +8,12 @@ Purpose: define the required Airflow orchestration shape for the Enrollment pipe
 - Real logic stays in `src/helpers/enrollment/*` and `src/helpers/neo4j/*`.
 - Between every transformation task, insert a validation task.
 
+Additional non-negotiable:
+- The DAG file MUST NOT implement transformation/validation or file IO helpers.
+  - Task callables MUST live in helpers (e.g. in `src/helpers/enrollment/adapter.py`, `transformer.py`, `graph.py`, `validator.py`).
+  - Saving/loading artifacts MUST live in helpers (e.g. `src/helpers/enrollment/artifacts.py`).
+  - Cross-stage C1..C5 validation MUST live in helpers (e.g. `src/helpers/enrollment/validator.py`).
+
 Note:
 - PostgreSQL exists only as Airflow's metadata DB (metastore).
 - Enrollment pipeline logic and validation MUST NOT use Postgres as an analytics store.
@@ -53,4 +59,9 @@ Including:
 - `graph.json`
 - `C0.txt` (optional)
 - `C1.txt` … `C5.txt`
+
+## Testing note
+
+- E2E tests MUST NOT query Postgres directly.
+- Prefer validating the run by checking deterministic artifacts under `/opt/airflow/logs/eventgraph/<run_id>/` (e.g. wait for `C5.txt`).
 

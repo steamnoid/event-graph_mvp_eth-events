@@ -6,6 +6,26 @@ Event = dict[str, Any]
 Edge = Dict[str, str]
 
 
+def task_transform_normalized_to_edges_file(normalized_file: str, **context) -> str:
+	"""Airflow task callable: Stage C3 transform."""
+	from helpers.enrollment import pipeline
+
+	run_id = str(context.get("run_id") or "manual")
+	return pipeline.transform_normalized_to_edges_file(run_id=run_id, normalized_file=normalized_file)
+
+
+def task_transform_edges_to_graph_file(normalized_file: str, edges_file: str, **context) -> str:
+	"""Airflow task callable: Stage C4 transform."""
+	from helpers.enrollment import pipeline
+
+	run_id = str(context.get("run_id") or "manual")
+	return pipeline.transform_edges_to_graph_file(
+		run_id=run_id,
+		normalized_file=normalized_file,
+		edges_file=edges_file,
+	)
+
+
 def build_edges(events: List[Event]) -> List[Edge]:
 	"""Build a causal edge list using declared `parent_event_ids`.
 

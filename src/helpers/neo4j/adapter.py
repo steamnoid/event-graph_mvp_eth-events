@@ -24,6 +24,13 @@ def load_graph_from_file(filename: str) -> dict:
 		return json.load(f)
 
 
+def task_write_graph_to_neo4j(graph_file: str, **_context) -> int:
+	"""Airflow task callable: persist graph.json to Neo4j."""
+	graph = load_graph_from_file(graph_file)
+	write_graph_to_db(graph)
+	return 0
+
+
 def _neo4j_config() -> tuple[str, str, str]:
 	uri = os.getenv("NEO4J_URI", "neo4j://localhost:7687")
 	user = os.getenv("NEO4J_USER", "neo4j")
