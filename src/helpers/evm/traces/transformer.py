@@ -5,6 +5,51 @@ from typing import Sequence
 from helpers.evm.traces.identity import normalize_trace_address, parent_trace_address, trace_event_id
 
 
+def trace_event_order(*, trace_address: Sequence[int | str]) -> str:
+    normalized = normalize_trace_address(trace_address)
+    if not normalized:
+        return "1"
+    return "1." + ".".join(str(int(i) + 1) for i in normalized)
+
+
+def trace_event_name(trace: dict) -> str | None:
+    if trace.get("error"):
+        return "REVERT"
+
+    trace_type = trace.get("type")
+    if str(trace_type).lower() == "call":
+        action = trace.get("action") if isinstance(trace.get("action"), dict) else {}
+        call_type = action.get("callType") or action.get("call_type")
+        if call_type:
+            return str(call_type).upper()
+        return "CALL"
+
+    if trace_type is None:
+        return None
+    return str(trace_type).upper()
+
+
+def trace_call_metadata(trace: dict) -> dict:
+    action = trace.get("action") if isinstance(trace.get("action"), dict) else {}
+    from_address = action.get("from")
+    to_address = action.get("to")
+    call_type = action.get("callType") or action.get("call_type")
+    value = action.get("value")
+    input_data = action.get("input")
+    input_sig = None
+    if isinstance(input_data, str) and input_data.startswith("0x") and len(input_data) >= 10:
+        input_sig = input_data[:10]
+
+    return {
+        "from_address": from_address,
+        "to_address": to_address,
+        "call_type": call_type,
+        "value": value,
+        "input": input_data,
+        "input_sig": input_sig,
+    }
+
+
 def traces_from_trace_block_response(response: dict) -> list[dict]:
     traces = response.get("trace")
     if isinstance(traces, list):
@@ -93,6 +138,10 @@ def trace_events_for_transaction(*, tx_hash: str, traces: Sequence[dict]) -> lis
 
         normalized_addr = normalize_trace_address(trace_address)
         trace_type = trace.get("type")
+        event_name = trace_event_name(trace)
+        event_order = trace_event_order(trace_address=normalized_addr)
+
+        metadata = trace_call_metadata(trace)
 
         events.append(
             {
@@ -100,6 +149,9 @@ def trace_events_for_transaction(*, tx_hash: str, traces: Sequence[dict]) -> lis
                 "tx_hash": tx_hash,
                 "trace_address": normalized_addr,
                 "type": trace_type,
+                "event_name": event_name,
+                "event_order": event_order,
+                **metadata,
             }
         )
     return events

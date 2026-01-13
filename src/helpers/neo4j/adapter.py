@@ -4,6 +4,14 @@ import os
 from neo4j import GraphDatabase
 
 
+def event_display_name(event: dict) -> str | None:
+	name = event.get("event_name")
+	order = event.get("event_order")
+	if order and name:
+		return f"{order} {name}"
+	return name
+
+
 def load_graph_from_file(filename: str) -> dict:
 	with open(filename, "r", encoding="utf-8") as f:
 		return json.load(f)
@@ -37,17 +45,41 @@ def write_graph_to_db(graph: dict) -> None:
 				if not event_id:
 					continue
 
+				name = event_display_name(event)
+
 				session.run(
 					"""
 					MERGE (e:Event {event_id: $event_id})
 					SET e.tx_hash = $tx_hash,
 						e.log_index = $log_index,
-						e.event_name = $event_name
+						e.event_name = $event_name,
+						e.name = $name,
+						e.display_name = $display_name,
+						e.trace_address = $trace_address,
+						e.trace_type = $trace_type,
+						e.event_order = $event_order,
+						e.from_address = $from_address,
+						e.to_address = $to_address,
+						e.call_type = $call_type,
+						e.value = $value,
+						e.input = $input,
+						e.input_sig = $input_sig
 					""",
 					event_id=event_id,
 					tx_hash=event.get("tx_hash"),
 					log_index=event.get("log_index"),
 					event_name=event.get("event_name"),
+					name=name,
+					display_name=name,
+					trace_address=event.get("trace_address"),
+					trace_type=event.get("type"),
+					event_order=event.get("event_order"),
+					from_address=event.get("from_address"),
+					to_address=event.get("to_address"),
+					call_type=event.get("call_type"),
+					value=event.get("value"),
+					input=event.get("input"),
+					input_sig=event.get("input_sig"),
 				)
 
 				session.run(
