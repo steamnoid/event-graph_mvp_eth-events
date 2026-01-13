@@ -225,6 +225,21 @@ The generator MUST support BOTH:
 - write events to file (JSON or NDJSON)
 - closed, replayable batch
 
+### 9.3 Two-step generation (NEW, MANDATORY)
+
+The generator MUST operate in two explicit steps:
+
+1) Generate a **banal, textual causality rules** representation (diff-friendly),
+   equivalent in spirit to the “causality rules” used in Airflow DAG logs.
+2) Materialize JSON/NDJSON events **only from that textual representation**.
+
+Rationale:
+- makes declared causality explicit and reviewable
+- enables simple `diff` comparisons
+- prevents accidental drift between “intended causality” and “materialized events”
+
+The textual rules format MUST be stable, sortable, and deterministic under `seed`.
+
 ### 9.2 Stream output
 - emit events incrementally
 - no ordering guarantees

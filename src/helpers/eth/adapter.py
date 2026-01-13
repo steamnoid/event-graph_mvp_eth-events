@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from web3 import Web3, HTTPProvider
 from os import getenv
 from dotenv import load_dotenv

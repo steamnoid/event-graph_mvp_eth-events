@@ -1,0 +1,27 @@
+run_id=cli:causality-diff:seed=3:entities=1:p=1.0
+
+entity_id=enrollment-1
+types:
+  - ContentAvailabilityChecked
+  - ContentAvailable
+  - ContentPrepared
+  - CourseAccessRequested
+  - CourseEnrollmentRequested
+  - EligibilityChecked
+  - EligibilityPassed
+  - EnrollmentArchived
+  - EnrollmentCompleted
+  - PaymentConfirmed
+  - PaymentProcessingRequested
+  - UserProfileLoaded
+edges:
+  - ContentAvailabilityChecked -> ContentAvailable
+  - ContentAvailable -> ContentPrepared
+  - CourseAccessRequested -> ContentAvailabilityChecked
+  - CourseEnrollmentRequested -> PaymentProcessingRequested
+  - EligibilityChecked -> EligibilityPassed
+  - EnrollmentCompleted -> EnrollmentArchived
+  - PaymentConfirmed -> CourseAccessRequested
+  - PaymentConfirmed -> UserProfileLoaded
+  - PaymentProcessingRequested -> PaymentConfirmed
+  - UserProfileLoaded -> EligibilityChecked

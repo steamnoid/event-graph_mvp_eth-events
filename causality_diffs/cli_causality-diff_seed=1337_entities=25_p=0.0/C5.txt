@@ -1,0 +1,776 @@
+run_id=cli:causality-diff:seed=1337:entities=25:p=0.0
+
+entity_id=enrollment-1
+types:
+  - AccessGranted
+  - ContentAvailabilityChecked
+  - ContentAvailable
+  - ContentPrepared
+  - CourseAccessRequested
+  - CourseEnrollmentRequested
+  - EligibilityChecked
+  - EligibilityPassed
+  - EnrollmentArchived
+  - EnrollmentCompleted
+  - PaymentConfirmed
+  - PaymentProcessingRequested
+  - UserProfileLoaded
+edges:
+  - AccessGranted -> EnrollmentCompleted
+  - ContentAvailabilityChecked -> ContentAvailable
+  - ContentAvailable -> ContentPrepared
+  - ContentPrepared -> AccessGranted
+  - CourseAccessRequested -> ContentAvailabilityChecked
+  - CourseEnrollmentRequested -> PaymentProcessingRequested
+  - EligibilityChecked -> EligibilityPassed
+  - EligibilityPassed -> AccessGranted
+  - EnrollmentCompleted -> EnrollmentArchived
+  - PaymentConfirmed -> AccessGranted
+  - PaymentConfirmed -> CourseAccessRequested
+  - PaymentConfirmed -> UserProfileLoaded
+  - PaymentProcessingRequested -> PaymentConfirmed
+  - UserProfileLoaded -> EligibilityChecked
+
+entity_id=enrollment-10
+types:
+  - AccessGranted
+  - ContentAvailabilityChecked
+  - ContentAvailable
+  - ContentPrepared
+  - CourseAccessRequested
+  - CourseEnrollmentRequested
+  - EligibilityChecked
+  - EligibilityPassed
+  - EnrollmentArchived
+  - EnrollmentCompleted
+  - PaymentConfirmed
+  - PaymentProcessingRequested
+  - UserProfileLoaded
+edges:
+  - AccessGranted -> EnrollmentCompleted
+  - ContentAvailabilityChecked -> ContentAvailable
+  - ContentAvailable -> ContentPrepared
+  - ContentPrepared -> AccessGranted
+  - CourseAccessRequested -> ContentAvailabilityChecked
+  - CourseEnrollmentRequested -> PaymentProcessingRequested
+  - EligibilityChecked -> EligibilityPassed
+  - EligibilityPassed -> AccessGranted
+  - EnrollmentCompleted -> EnrollmentArchived
+  - PaymentConfirmed -> AccessGranted
+  - PaymentConfirmed -> CourseAccessRequested
+  - PaymentConfirmed -> UserProfileLoaded
+  - PaymentProcessingRequested -> PaymentConfirmed
+  - UserProfileLoaded -> EligibilityChecked
+
+entity_id=enrollment-11
+types:
+  - AccessGranted
+  - ContentAvailabilityChecked
+  - ContentAvailable
+  - ContentPrepared
+  - CourseAccessRequested
+  - CourseEnrollmentRequested
+  - EligibilityChecked
+  - EligibilityPassed
+  - EnrollmentArchived
+  - EnrollmentCompleted
+  - PaymentConfirmed
+  - PaymentProcessingRequested
+  - UserProfileLoaded
+edges:
+  - AccessGranted -> EnrollmentCompleted
+  - ContentAvailabilityChecked -> ContentAvailable
+  - ContentAvailable -> ContentPrepared
+  - ContentPrepared -> AccessGranted
+  - CourseAccessRequested -> ContentAvailabilityChecked
+  - CourseEnrollmentRequested -> PaymentProcessingRequested
+  - EligibilityChecked -> EligibilityPassed
+  - EligibilityPassed -> AccessGranted
+  - EnrollmentCompleted -> EnrollmentArchived
+  - PaymentConfirmed -> AccessGranted
+  - PaymentConfirmed -> CourseAccessRequested
+  - PaymentConfirmed -> UserProfileLoaded
+  - PaymentProcessingRequested -> PaymentConfirmed
+  - UserProfileLoaded -> EligibilityChecked
+
+entity_id=enrollment-12
+types:
+  - AccessGranted
+  - ContentAvailabilityChecked
+  - ContentAvailable
+  - ContentPrepared
+  - CourseAccessRequested
+  - CourseEnrollmentRequested
+  - EligibilityChecked
+  - EligibilityPassed
+  - EnrollmentArchived
+  - EnrollmentCompleted
+  - PaymentConfirmed
+  - PaymentProcessingRequested
+  - UserProfileLoaded
+edges:
+  - AccessGranted -> EnrollmentCompleted
+  - ContentAvailabilityChecked -> ContentAvailable
+  - ContentAvailable -> ContentPrepared
+  - ContentPrepared -> AccessGranted
+  - CourseAccessRequested -> ContentAvailabilityChecked
+  - CourseEnrollmentRequested -> PaymentProcessingRequested
+  - EligibilityChecked -> EligibilityPassed
+  - EligibilityPassed -> AccessGranted
+  - EnrollmentCompleted -> EnrollmentArchived
+  - PaymentConfirmed -> AccessGranted
+  - PaymentConfirmed -> CourseAccessRequested
+  - PaymentConfirmed -> UserProfileLoaded
+  - PaymentProcessingRequested -> PaymentConfirmed
+  - UserProfileLoaded -> EligibilityChecked
+
+entity_id=enrollment-13
+types:
+  - AccessGranted
+  - ContentAvailabilityChecked
+  - ContentAvailable
+  - ContentPrepared
+  - CourseAccessRequested
+  - CourseEnrollmentRequested
+  - EligibilityChecked
+  - EligibilityPassed
+  - EnrollmentArchived
+  - EnrollmentCompleted
+  - PaymentConfirmed
+  - PaymentProcessingRequested
+  - UserProfileLoaded
+edges:
+  - AccessGranted -> EnrollmentCompleted
+  - ContentAvailabilityChecked -> ContentAvailable
+  - ContentAvailable -> ContentPrepared
+  - ContentPrepared -> AccessGranted
+  - CourseAccessRequested -> ContentAvailabilityChecked
+  - CourseEnrollmentRequested -> PaymentProcessingRequested
+  - EligibilityChecked -> EligibilityPassed
+  - EligibilityPassed -> AccessGranted
+  - EnrollmentCompleted -> EnrollmentArchived
+  - PaymentConfirmed -> AccessGranted
+  - PaymentConfirmed -> CourseAccessRequested
+  - PaymentConfirmed -> UserProfileLoaded
+  - PaymentProcessingRequested -> PaymentConfirmed
+  - UserProfileLoaded -> EligibilityChecked
+
+entity_id=enrollment-14
+types:
+  - AccessGranted
+  - ContentAvailabilityChecked
+  - ContentAvailable
+  - ContentPrepared
+  - CourseAccessRequested
+  - CourseEnrollmentRequested
+  - EligibilityChecked
+  - EligibilityPassed
+  - EnrollmentArchived
+  - EnrollmentCompleted
+  - PaymentConfirmed
+  - PaymentProcessingRequested
+  - UserProfileLoaded
+edges:
+  - AccessGranted -> EnrollmentCompleted
+  - ContentAvailabilityChecked -> ContentAvailable
+  - ContentAvailable -> ContentPrepared
+  - ContentPrepared -> AccessGranted
+  - CourseAccessRequested -> ContentAvailabilityChecked
+  - CourseEnrollmentRequested -> PaymentProcessingRequested
+  - EligibilityChecked -> EligibilityPassed
+  - EligibilityPassed -> AccessGranted
+  - EnrollmentCompleted -> EnrollmentArchived
+  - PaymentConfirmed -> AccessGranted
+  - PaymentConfirmed -> CourseAccessRequested
+  - PaymentConfirmed -> UserProfileLoaded
+  - PaymentProcessingRequested -> PaymentConfirmed
+  - UserProfileLoaded -> EligibilityChecked
+
+entity_id=enrollment-15
+types:
+  - AccessGranted
+  - ContentAvailabilityChecked
+  - ContentAvailable
+  - ContentPrepared
+  - CourseAccessRequested
+  - CourseEnrollmentRequested
+  - EligibilityChecked
+  - EligibilityPassed
+  - EnrollmentArchived
+  - EnrollmentCompleted
+  - PaymentConfirmed
+  - PaymentProcessingRequested
+  - UserProfileLoaded
+edges:
+  - AccessGranted -> EnrollmentCompleted
+  - ContentAvailabilityChecked -> ContentAvailable
+  - ContentAvailable -> ContentPrepared
+  - ContentPrepared -> AccessGranted
+  - CourseAccessRequested -> ContentAvailabilityChecked
+  - CourseEnrollmentRequested -> PaymentProcessingRequested
+  - EligibilityChecked -> EligibilityPassed
+  - EligibilityPassed -> AccessGranted
+  - EnrollmentCompleted -> EnrollmentArchived
+  - PaymentConfirmed -> AccessGranted
+  - PaymentConfirmed -> CourseAccessRequested
+  - PaymentConfirmed -> UserProfileLoaded
+  - PaymentProcessingRequested -> PaymentConfirmed
+  - UserProfileLoaded -> EligibilityChecked
+
+entity_id=enrollment-16
+types:
+  - AccessGranted
+  - ContentAvailabilityChecked
+  - ContentAvailable
+  - ContentPrepared
+  - CourseAccessRequested
+  - CourseEnrollmentRequested
+  - EligibilityChecked
+  - EligibilityPassed
+  - EnrollmentArchived
+  - EnrollmentCompleted
+  - PaymentConfirmed
+  - PaymentProcessingRequested
+  - UserProfileLoaded
+edges:
+  - AccessGranted -> EnrollmentCompleted
+  - ContentAvailabilityChecked -> ContentAvailable
+  - ContentAvailable -> ContentPrepared
+  - ContentPrepared -> AccessGranted
+  - CourseAccessRequested -> ContentAvailabilityChecked
+  - CourseEnrollmentRequested -> PaymentProcessingRequested
+  - EligibilityChecked -> EligibilityPassed
+  - EligibilityPassed -> AccessGranted
+  - EnrollmentCompleted -> EnrollmentArchived
+  - PaymentConfirmed -> AccessGranted
+  - PaymentConfirmed -> CourseAccessRequested
+  - PaymentConfirmed -> UserProfileLoaded
+  - PaymentProcessingRequested -> PaymentConfirmed
+  - UserProfileLoaded -> EligibilityChecked
+
+entity_id=enrollment-17
+types:
+  - AccessGranted
+  - ContentAvailabilityChecked
+  - ContentAvailable
+  - ContentPrepared
+  - CourseAccessRequested
+  - CourseEnrollmentRequested
+  - EligibilityChecked
+  - EligibilityPassed
+  - EnrollmentArchived
+  - EnrollmentCompleted
+  - PaymentConfirmed
+  - PaymentProcessingRequested
+  - UserProfileLoaded
+edges:
+  - AccessGranted -> EnrollmentCompleted
+  - ContentAvailabilityChecked -> ContentAvailable
+  - ContentAvailable -> ContentPrepared
+  - ContentPrepared -> AccessGranted
+  - CourseAccessRequested -> ContentAvailabilityChecked
+  - CourseEnrollmentRequested -> PaymentProcessingRequested
+  - EligibilityChecked -> EligibilityPassed
+  - EligibilityPassed -> AccessGranted
+  - EnrollmentCompleted -> EnrollmentArchived
+  - PaymentConfirmed -> AccessGranted
+  - PaymentConfirmed -> CourseAccessRequested
+  - PaymentConfirmed -> UserProfileLoaded
+  - PaymentProcessingRequested -> PaymentConfirmed
+  - UserProfileLoaded -> EligibilityChecked
+
+entity_id=enrollment-18
+types:
+  - AccessGranted
+  - ContentAvailabilityChecked
+  - ContentAvailable
+  - ContentPrepared
+  - CourseAccessRequested
+  - CourseEnrollmentRequested
+  - EligibilityChecked
+  - EligibilityPassed
+  - EnrollmentArchived
+  - EnrollmentCompleted
+  - PaymentConfirmed
+  - PaymentProcessingRequested
+  - UserProfileLoaded
+edges:
+  - AccessGranted -> EnrollmentCompleted
+  - ContentAvailabilityChecked -> ContentAvailable
+  - ContentAvailable -> ContentPrepared
+  - ContentPrepared -> AccessGranted
+  - CourseAccessRequested -> ContentAvailabilityChecked
+  - CourseEnrollmentRequested -> PaymentProcessingRequested
+  - EligibilityChecked -> EligibilityPassed
+  - EligibilityPassed -> AccessGranted
+  - EnrollmentCompleted -> EnrollmentArchived
+  - PaymentConfirmed -> AccessGranted
+  - PaymentConfirmed -> CourseAccessRequested
+  - PaymentConfirmed -> UserProfileLoaded
+  - PaymentProcessingRequested -> PaymentConfirmed
+  - UserProfileLoaded -> EligibilityChecked
+
+entity_id=enrollment-19
+types:
+  - AccessGranted
+  - ContentAvailabilityChecked
+  - ContentAvailable
+  - ContentPrepared
+  - CourseAccessRequested
+  - CourseEnrollmentRequested
+  - EligibilityChecked
+  - EligibilityPassed
+  - EnrollmentArchived
+  - EnrollmentCompleted
+  - PaymentConfirmed
+  - PaymentProcessingRequested
+  - UserProfileLoaded
+edges:
+  - AccessGranted -> EnrollmentCompleted
+  - ContentAvailabilityChecked -> ContentAvailable
+  - ContentAvailable -> ContentPrepared
+  - ContentPrepared -> AccessGranted
+  - CourseAccessRequested -> ContentAvailabilityChecked
+  - CourseEnrollmentRequested -> PaymentProcessingRequested
+  - EligibilityChecked -> EligibilityPassed
+  - EligibilityPassed -> AccessGranted
+  - EnrollmentCompleted -> EnrollmentArchived
+  - PaymentConfirmed -> AccessGranted
+  - PaymentConfirmed -> CourseAccessRequested
+  - PaymentConfirmed -> UserProfileLoaded
+  - PaymentProcessingRequested -> PaymentConfirmed
+  - UserProfileLoaded -> EligibilityChecked
+
+entity_id=enrollment-2
+types:
+  - AccessGranted
+  - ContentAvailabilityChecked
+  - ContentAvailable
+  - ContentPrepared
+  - CourseAccessRequested
+  - CourseEnrollmentRequested
+  - EligibilityChecked
+  - EligibilityPassed
+  - EnrollmentArchived
+  - EnrollmentCompleted
+  - PaymentConfirmed
+  - PaymentProcessingRequested
+  - UserProfileLoaded
+edges:
+  - AccessGranted -> EnrollmentCompleted
+  - ContentAvailabilityChecked -> ContentAvailable
+  - ContentAvailable -> ContentPrepared
+  - ContentPrepared -> AccessGranted
+  - CourseAccessRequested -> ContentAvailabilityChecked
+  - CourseEnrollmentRequested -> PaymentProcessingRequested
+  - EligibilityChecked -> EligibilityPassed
+  - EligibilityPassed -> AccessGranted
+  - EnrollmentCompleted -> EnrollmentArchived
+  - PaymentConfirmed -> AccessGranted
+  - PaymentConfirmed -> CourseAccessRequested
+  - PaymentConfirmed -> UserProfileLoaded
+  - PaymentProcessingRequested -> PaymentConfirmed
+  - UserProfileLoaded -> EligibilityChecked
+
+entity_id=enrollment-20
+types:
+  - AccessGranted
+  - ContentAvailabilityChecked
+  - ContentAvailable
+  - ContentPrepared
+  - CourseAccessRequested
+  - CourseEnrollmentRequested
+  - EligibilityChecked
+  - EligibilityPassed
+  - EnrollmentArchived
+  - EnrollmentCompleted
+  - PaymentConfirmed
+  - PaymentProcessingRequested
+  - UserProfileLoaded
+edges:
+  - AccessGranted -> EnrollmentCompleted
+  - ContentAvailabilityChecked -> ContentAvailable
+  - ContentAvailable -> ContentPrepared
+  - ContentPrepared -> AccessGranted
+  - CourseAccessRequested -> ContentAvailabilityChecked
+  - CourseEnrollmentRequested -> PaymentProcessingRequested
+  - EligibilityChecked -> EligibilityPassed
+  - EligibilityPassed -> AccessGranted
+  - EnrollmentCompleted -> EnrollmentArchived
+  - PaymentConfirmed -> AccessGranted
+  - PaymentConfirmed -> CourseAccessRequested
+  - PaymentConfirmed -> UserProfileLoaded
+  - PaymentProcessingRequested -> PaymentConfirmed
+  - UserProfileLoaded -> EligibilityChecked
+
+entity_id=enrollment-21
+types:
+  - AccessGranted
+  - ContentAvailabilityChecked
+  - ContentAvailable
+  - ContentPrepared
+  - CourseAccessRequested
+  - CourseEnrollmentRequested
+  - EligibilityChecked
+  - EligibilityPassed
+  - EnrollmentArchived
+  - EnrollmentCompleted
+  - PaymentConfirmed
+  - PaymentProcessingRequested
+  - UserProfileLoaded
+edges:
+  - AccessGranted -> EnrollmentCompleted
+  - ContentAvailabilityChecked -> ContentAvailable
+  - ContentAvailable -> ContentPrepared
+  - ContentPrepared -> AccessGranted
+  - CourseAccessRequested -> ContentAvailabilityChecked
+  - CourseEnrollmentRequested -> PaymentProcessingRequested
+  - EligibilityChecked -> EligibilityPassed
+  - EligibilityPassed -> AccessGranted
+  - EnrollmentCompleted -> EnrollmentArchived
+  - PaymentConfirmed -> AccessGranted
+  - PaymentConfirmed -> CourseAccessRequested
+  - PaymentConfirmed -> UserProfileLoaded
+  - PaymentProcessingRequested -> PaymentConfirmed
+  - UserProfileLoaded -> EligibilityChecked
+
+entity_id=enrollment-22
+types:
+  - AccessGranted
+  - ContentAvailabilityChecked
+  - ContentAvailable
+  - ContentPrepared
+  - CourseAccessRequested
+  - CourseEnrollmentRequested
+  - EligibilityChecked
+  - EligibilityPassed
+  - EnrollmentArchived
+  - EnrollmentCompleted
+  - PaymentConfirmed
+  - PaymentProcessingRequested
+  - UserProfileLoaded
+edges:
+  - AccessGranted -> EnrollmentCompleted
+  - ContentAvailabilityChecked -> ContentAvailable
+  - ContentAvailable -> ContentPrepared
+  - ContentPrepared -> AccessGranted
+  - CourseAccessRequested -> ContentAvailabilityChecked
+  - CourseEnrollmentRequested -> PaymentProcessingRequested
+  - EligibilityChecked -> EligibilityPassed
+  - EligibilityPassed -> AccessGranted
+  - EnrollmentCompleted -> EnrollmentArchived
+  - PaymentConfirmed -> AccessGranted
+  - PaymentConfirmed -> CourseAccessRequested
+  - PaymentConfirmed -> UserProfileLoaded
+  - PaymentProcessingRequested -> PaymentConfirmed
+  - UserProfileLoaded -> EligibilityChecked
+
+entity_id=enrollment-23
+types:
+  - AccessGranted
+  - ContentAvailabilityChecked
+  - ContentAvailable
+  - ContentPrepared
+  - CourseAccessRequested
+  - CourseEnrollmentRequested
+  - EligibilityChecked
+  - EligibilityPassed
+  - EnrollmentArchived
+  - EnrollmentCompleted
+  - PaymentConfirmed
+  - PaymentProcessingRequested
+  - UserProfileLoaded
+edges:
+  - AccessGranted -> EnrollmentCompleted
+  - ContentAvailabilityChecked -> ContentAvailable
+  - ContentAvailable -> ContentPrepared
+  - ContentPrepared -> AccessGranted
+  - CourseAccessRequested -> ContentAvailabilityChecked
+  - CourseEnrollmentRequested -> PaymentProcessingRequested
+  - EligibilityChecked -> EligibilityPassed
+  - EligibilityPassed -> AccessGranted
+  - EnrollmentCompleted -> EnrollmentArchived
+  - PaymentConfirmed -> AccessGranted
+  - PaymentConfirmed -> CourseAccessRequested
+  - PaymentConfirmed -> UserProfileLoaded
+  - PaymentProcessingRequested -> PaymentConfirmed
+  - UserProfileLoaded -> EligibilityChecked
+
+entity_id=enrollment-24
+types:
+  - AccessGranted
+  - ContentAvailabilityChecked
+  - ContentAvailable
+  - ContentPrepared
+  - CourseAccessRequested
+  - CourseEnrollmentRequested
+  - EligibilityChecked
+  - EligibilityPassed
+  - EnrollmentArchived
+  - EnrollmentCompleted
+  - PaymentConfirmed
+  - PaymentProcessingRequested
+  - UserProfileLoaded
+edges:
+  - AccessGranted -> EnrollmentCompleted
+  - ContentAvailabilityChecked -> ContentAvailable
+  - ContentAvailable -> ContentPrepared
+  - ContentPrepared -> AccessGranted
+  - CourseAccessRequested -> ContentAvailabilityChecked
+  - CourseEnrollmentRequested -> PaymentProcessingRequested
+  - EligibilityChecked -> EligibilityPassed
+  - EligibilityPassed -> AccessGranted
+  - EnrollmentCompleted -> EnrollmentArchived
+  - PaymentConfirmed -> AccessGranted
+  - PaymentConfirmed -> CourseAccessRequested
+  - PaymentConfirmed -> UserProfileLoaded
+  - PaymentProcessingRequested -> PaymentConfirmed
+  - UserProfileLoaded -> EligibilityChecked
+
+entity_id=enrollment-25
+types:
+  - AccessGranted
+  - ContentAvailabilityChecked
+  - ContentAvailable
+  - ContentPrepared
+  - CourseAccessRequested
+  - CourseEnrollmentRequested
+  - EligibilityChecked
+  - EligibilityPassed
+  - EnrollmentArchived
+  - EnrollmentCompleted
+  - PaymentConfirmed
+  - PaymentProcessingRequested
+  - UserProfileLoaded
+edges:
+  - AccessGranted -> EnrollmentCompleted
+  - ContentAvailabilityChecked -> ContentAvailable
+  - ContentAvailable -> ContentPrepared
+  - ContentPrepared -> AccessGranted
+  - CourseAccessRequested -> ContentAvailabilityChecked
+  - CourseEnrollmentRequested -> PaymentProcessingRequested
+  - EligibilityChecked -> EligibilityPassed
+  - EligibilityPassed -> AccessGranted
+  - EnrollmentCompleted -> EnrollmentArchived
+  - PaymentConfirmed -> AccessGranted
+  - PaymentConfirmed -> CourseAccessRequested
+  - PaymentConfirmed -> UserProfileLoaded
+  - PaymentProcessingRequested -> PaymentConfirmed
+  - UserProfileLoaded -> EligibilityChecked
+
+entity_id=enrollment-3
+types:
+  - AccessGranted
+  - ContentAvailabilityChecked
+  - ContentAvailable
+  - ContentPrepared
+  - CourseAccessRequested
+  - CourseEnrollmentRequested
+  - EligibilityChecked
+  - EligibilityPassed
+  - EnrollmentArchived
+  - EnrollmentCompleted
+  - PaymentConfirmed
+  - PaymentProcessingRequested
+  - UserProfileLoaded
+edges:
+  - AccessGranted -> EnrollmentCompleted
+  - ContentAvailabilityChecked -> ContentAvailable
+  - ContentAvailable -> ContentPrepared
+  - ContentPrepared -> AccessGranted
+  - CourseAccessRequested -> ContentAvailabilityChecked
+  - CourseEnrollmentRequested -> PaymentProcessingRequested
+  - EligibilityChecked -> EligibilityPassed
+  - EligibilityPassed -> AccessGranted
+  - EnrollmentCompleted -> EnrollmentArchived
+  - PaymentConfirmed -> AccessGranted
+  - PaymentConfirmed -> CourseAccessRequested
+  - PaymentConfirmed -> UserProfileLoaded
+  - PaymentProcessingRequested -> PaymentConfirmed
+  - UserProfileLoaded -> EligibilityChecked
+
+entity_id=enrollment-4
+types:
+  - AccessGranted
+  - ContentAvailabilityChecked
+  - ContentAvailable
+  - ContentPrepared
+  - CourseAccessRequested
+  - CourseEnrollmentRequested
+  - EligibilityChecked
+  - EligibilityPassed
+  - EnrollmentArchived
+  - EnrollmentCompleted
+  - PaymentConfirmed
+  - PaymentProcessingRequested
+  - UserProfileLoaded
+edges:
+  - AccessGranted -> EnrollmentCompleted
+  - ContentAvailabilityChecked -> ContentAvailable
+  - ContentAvailable -> ContentPrepared
+  - ContentPrepared -> AccessGranted
+  - CourseAccessRequested -> ContentAvailabilityChecked
+  - CourseEnrollmentRequested -> PaymentProcessingRequested
+  - EligibilityChecked -> EligibilityPassed
+  - EligibilityPassed -> AccessGranted
+  - EnrollmentCompleted -> EnrollmentArchived
+  - PaymentConfirmed -> AccessGranted
+  - PaymentConfirmed -> CourseAccessRequested
+  - PaymentConfirmed -> UserProfileLoaded
+  - PaymentProcessingRequested -> PaymentConfirmed
+  - UserProfileLoaded -> EligibilityChecked
+
+entity_id=enrollment-5
+types:
+  - AccessGranted
+  - ContentAvailabilityChecked
+  - ContentAvailable
+  - ContentPrepared
+  - CourseAccessRequested
+  - CourseEnrollmentRequested
+  - EligibilityChecked
+  - EligibilityPassed
+  - EnrollmentArchived
+  - EnrollmentCompleted
+  - PaymentConfirmed
+  - PaymentProcessingRequested
+  - UserProfileLoaded
+edges:
+  - AccessGranted -> EnrollmentCompleted
+  - ContentAvailabilityChecked -> ContentAvailable
+  - ContentAvailable -> ContentPrepared
+  - ContentPrepared -> AccessGranted
+  - CourseAccessRequested -> ContentAvailabilityChecked
+  - CourseEnrollmentRequested -> PaymentProcessingRequested
+  - EligibilityChecked -> EligibilityPassed
+  - EligibilityPassed -> AccessGranted
+  - EnrollmentCompleted -> EnrollmentArchived
+  - PaymentConfirmed -> AccessGranted
+  - PaymentConfirmed -> CourseAccessRequested
+  - PaymentConfirmed -> UserProfileLoaded
+  - PaymentProcessingRequested -> PaymentConfirmed
+  - UserProfileLoaded -> EligibilityChecked
+
+entity_id=enrollment-6
+types:
+  - AccessGranted
+  - ContentAvailabilityChecked
+  - ContentAvailable
+  - ContentPrepared
+  - CourseAccessRequested
+  - CourseEnrollmentRequested
+  - EligibilityChecked
+  - EligibilityPassed
+  - EnrollmentArchived
+  - EnrollmentCompleted
+  - PaymentConfirmed
+  - PaymentProcessingRequested
+  - UserProfileLoaded
+edges:
+  - AccessGranted -> EnrollmentCompleted
+  - ContentAvailabilityChecked -> ContentAvailable
+  - ContentAvailable -> ContentPrepared
+  - ContentPrepared -> AccessGranted
+  - CourseAccessRequested -> ContentAvailabilityChecked
+  - CourseEnrollmentRequested -> PaymentProcessingRequested
+  - EligibilityChecked -> EligibilityPassed
+  - EligibilityPassed -> AccessGranted
+  - EnrollmentCompleted -> EnrollmentArchived
+  - PaymentConfirmed -> AccessGranted
+  - PaymentConfirmed -> CourseAccessRequested
+  - PaymentConfirmed -> UserProfileLoaded
+  - PaymentProcessingRequested -> PaymentConfirmed
+  - UserProfileLoaded -> EligibilityChecked
+
+entity_id=enrollment-7
+types:
+  - AccessGranted
+  - ContentAvailabilityChecked
+  - ContentAvailable
+  - ContentPrepared
+  - CourseAccessRequested
+  - CourseEnrollmentRequested
+  - EligibilityChecked
+  - EligibilityPassed
+  - EnrollmentArchived
+  - EnrollmentCompleted
+  - PaymentConfirmed
+  - PaymentProcessingRequested
+  - UserProfileLoaded
+edges:
+  - AccessGranted -> EnrollmentCompleted
+  - ContentAvailabilityChecked -> ContentAvailable
+  - ContentAvailable -> ContentPrepared
+  - ContentPrepared -> AccessGranted
+  - CourseAccessRequested -> ContentAvailabilityChecked
+  - CourseEnrollmentRequested -> PaymentProcessingRequested
+  - EligibilityChecked -> EligibilityPassed
+  - EligibilityPassed -> AccessGranted
+  - EnrollmentCompleted -> EnrollmentArchived
+  - PaymentConfirmed -> AccessGranted
+  - PaymentConfirmed -> CourseAccessRequested
+  - PaymentConfirmed -> UserProfileLoaded
+  - PaymentProcessingRequested -> PaymentConfirmed
+  - UserProfileLoaded -> EligibilityChecked
+
+entity_id=enrollment-8
+types:
+  - AccessGranted
+  - ContentAvailabilityChecked
+  - ContentAvailable
+  - ContentPrepared
+  - CourseAccessRequested
+  - CourseEnrollmentRequested
+  - EligibilityChecked
+  - EligibilityPassed
+  - EnrollmentArchived
+  - EnrollmentCompleted
+  - PaymentConfirmed
+  - PaymentProcessingRequested
+  - UserProfileLoaded
+edges:
+  - AccessGranted -> EnrollmentCompleted
+  - ContentAvailabilityChecked -> ContentAvailable
+  - ContentAvailable -> ContentPrepared
+  - ContentPrepared -> AccessGranted
+  - CourseAccessRequested -> ContentAvailabilityChecked
+  - CourseEnrollmentRequested -> PaymentProcessingRequested
+  - EligibilityChecked -> EligibilityPassed
+  - EligibilityPassed -> AccessGranted
+  - EnrollmentCompleted -> EnrollmentArchived
+  - PaymentConfirmed -> AccessGranted
+  - PaymentConfirmed -> CourseAccessRequested
+  - PaymentConfirmed -> UserProfileLoaded
+  - PaymentProcessingRequested -> PaymentConfirmed
+  - UserProfileLoaded -> EligibilityChecked
+
+entity_id=enrollment-9
+types:
+  - AccessGranted
+  - ContentAvailabilityChecked
+  - ContentAvailable
+  - ContentPrepared
+  - CourseAccessRequested
+  - CourseEnrollmentRequested
+  - EligibilityChecked
+  - EligibilityPassed
+  - EnrollmentArchived
+  - EnrollmentCompleted
+  - PaymentConfirmed
+  - PaymentProcessingRequested
+  - UserProfileLoaded
+edges:
+  - AccessGranted -> EnrollmentCompleted
+  - ContentAvailabilityChecked -> ContentAvailable
+  - ContentAvailable -> ContentPrepared
+  - ContentPrepared -> AccessGranted
+  - CourseAccessRequested -> ContentAvailabilityChecked
+  - CourseEnrollmentRequested -> PaymentProcessingRequested
+  - EligibilityChecked -> EligibilityPassed
+  - EligibilityPassed -> AccessGranted
+  - EnrollmentCompleted -> EnrollmentArchived
+  - PaymentConfirmed -> AccessGranted
+  - PaymentConfirmed -> CourseAccessRequested
+  - PaymentConfirmed -> UserProfileLoaded
+  - PaymentProcessingRequested -> PaymentConfirmed
+  - UserProfileLoaded -> EligibilityChecked

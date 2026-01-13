@@ -7,103 +7,23 @@ import random
 from pathlib import Path
 from typing import Any, Dict, Iterable, Iterator, List, Literal, Sequence
 
+from enrollment_canonical import CANONICAL_ENROLLMENT_SPECS, spec_by_type
+from helpers.enrollment.causality_rules import (
+	CausalityRules,
+	format_causality_rules_text,
+	parse_causality_rules_text,
+)
+
 
 Event = Dict[str, Any]
 FileFormat = Literal["json", "ndjson"]
 
 
 @dataclass(frozen=True)
-class _EventSpec:
-	event_type: str
-	event_kind: Literal["fact", "decision"]
-	layer: str
-	parent_event_types: Sequence[str]
-
-
-_CANONICAL_SPECS: Sequence[_EventSpec] = (
-	_EventSpec(
-		event_type="CourseEnrollmentRequested",
-		event_kind="fact",
-		layer="L0",
-		parent_event_types=(),
-	),
-	_EventSpec(
-		event_type="PaymentProcessingRequested",
-		event_kind="fact",
-		layer="L1",
-		parent_event_types=("CourseEnrollmentRequested",),
-	),
-	_EventSpec(
-		event_type="PaymentConfirmed",
-		event_kind="fact",
-		layer="L2",
-		parent_event_types=("PaymentProcessingRequested",),
-	),
-	_EventSpec(
-		event_type="UserProfileLoaded",
-		event_kind="fact",
-		layer="L3",
-		parent_event_types=("PaymentConfirmed",),
-	),
-	_EventSpec(
-		event_type="CourseAccessRequested",
-		event_kind="fact",
-		layer="L3",
-		parent_event_types=("PaymentConfirmed",),
-	),
-	_EventSpec(
-		event_type="EligibilityChecked",
-		event_kind="fact",
-		layer="L4",
-		parent_event_types=("UserProfileLoaded",),
-	),
-	_EventSpec(
-		event_type="ContentAvailabilityChecked",
-		event_kind="fact",
-		layer="L4",
-		parent_event_types=("CourseAccessRequested",),
-	),
-	_EventSpec(
-		event_type="EligibilityPassed",
-		event_kind="fact",
-		layer="L5",
-		parent_event_types=("EligibilityChecked",),
-	),
-	_EventSpec(
-		event_type="ContentAvailable",
-		event_kind="fact",
-		layer="L5",
-		parent_event_types=("ContentAvailabilityChecked",),
-	),
-	_EventSpec(
-		event_type="ContentPrepared",
-		event_kind="fact",
-		layer="L6",
-		parent_event_types=("ContentAvailable",),
-	),
-	_EventSpec(
-		event_type="AccessGranted",
-		event_kind="decision",
-		layer="L6",
-		parent_event_types=(
-			"PaymentConfirmed",
-			"EligibilityPassed",
-			"ContentPrepared",
-		),
-	),
-	_EventSpec(
-		event_type="EnrollmentCompleted",
-		event_kind="decision",
-		layer="L7",
-		parent_event_types=("AccessGranted",),
-	),
-	_EventSpec(
-		event_type="EnrollmentArchived",
-		event_kind="fact",
-		layer="L8",
-		parent_event_types=("EnrollmentCompleted",),
-	),
-)
+class _CausalitySpec:
+	run_id: str
+	types_by_entity: dict[str, list[str]]
+	edges_by_entity: dict[str, list[tuple[str, str]]]
 
 
 def _base_time(*, seed: int | None) -> datetime:
@@ -119,82 +39,235 @@ def _event_id(*, entity_id: str, event_type: str) -> str:
 	return f"{entity_id}:{event_type}"
 
 
-def _maybe_make_inconsistent_parent_ids(
+def _parse_spec(text: str) -> _CausalitySpec:
+	r = parse_causality_rules_text(text)
+	return _CausalitySpec(run_id=r.run_id, types_by_entity=r.types_by_entity, edges_by_entity=r.edges_by_entity)
+
+
+def _maybe_make_inconsistent_parent_types(
 	*,
 	rng: random.Random,
-	correct_parent_ids: List[str],
-	all_event_ids: Sequence[str],
+	correct_parent_types: List[str],
+	all_types: Sequence[str],
 	inconsistency_rate: float,
+	max_wrong: int = 4,
 ) -> List[str]:
 	if inconsistency_rate <= 0.0:
-		return correct_parent_ids
+		return correct_parent_types
 
 	if rng.random() >= inconsistency_rate:
-		return correct_parent_ids
+		return correct_parent_types
 
 	mode = rng.choice(["missing", "wrong", "mixed"])
 	if mode == "missing":
-		if not correct_parent_ids:
+		if not correct_parent_types:
 			return []
-		return correct_parent_ids[: rng.randrange(0, len(correct_parent_ids))]
+		return correct_parent_types[: rng.randrange(0, len(correct_parent_types))]
 
 	wrong = []
-	if all_event_ids:
-		wrong_count = rng.randrange(0, 4)
-		wrong = [rng.choice(all_event_ids) for _ in range(wrong_count)]
+	if all_types:
+		wrong_count = rng.randrange(0, max_wrong + 1)
+		wrong = [rng.choice(all_types) for _ in range(wrong_count)]
 
 	if mode == "wrong":
 		return wrong
 
 	# mixed
-	kept = correct_parent_ids[: rng.randrange(0, len(correct_parent_ids) + 1)]
+	kept = correct_parent_types[: rng.randrange(0, len(correct_parent_types) + 1)]
 	return kept + wrong
 
 
-def _build_entity_events(
+def _apply_missing_cascade(
 	*,
-	entity_id: str,
-	seed_rng: random.Random,
-	base_time: datetime,
-	inconsistency_rate: float,
-	all_event_ids: Sequence[str],
-) -> List[Event]:
-	ids_by_type = {
-		spec.event_type: _event_id(entity_id=entity_id, event_type=spec.event_type)
-		for spec in _CANONICAL_SPECS
-	}
+	rng: random.Random,
+	all_types: list[str],
+	missing_event_rate: float,
+	root_type: str = "CourseEnrollmentRequested",
+) -> list[str]:
+	"""Return the surviving event types after applying missing+downstream cascade.
 
-	events: List[Event] = []
-	for index, spec in enumerate(_CANONICAL_SPECS):
-		correct_parent_ids = [ids_by_type[parent] for parent in spec.parent_event_types]
-		parent_event_ids = _maybe_make_inconsistent_parent_ids(
-			rng=seed_rng,
-			correct_parent_ids=correct_parent_ids,
-			all_event_ids=all_event_ids,
-			inconsistency_rate=inconsistency_rate,
-		)
+	Model:
+	- an event may be missing
+	- if an event is missing, any event that *depends on it* is also missing
 
-		# With inconsistency, we may omit a decision entirely.
-		if (
-			spec.event_kind == "decision"
-			and inconsistency_rate > 0.0
-			and seed_rng.random() < (inconsistency_rate / 4.0)
-		):
+	This is a simplification to model production gaps without introducing
+	business-rule inference outside the declared canonical dependency structure.
+	"""
+	if missing_event_rate <= 0.0:
+		return list(all_types)
+
+	if missing_event_rate < 0.0:
+		missing_event_rate = 0.0
+	if missing_event_rate > 1.0:
+		missing_event_rate = 1.0
+
+	present: set[str] = set(all_types)
+
+	# Seed missing set (never remove the root to keep the entity meaningful).
+	missing: set[str] = set()
+	for t in all_types:
+		if t == root_type:
 			continue
+		if rng.random() < missing_event_rate:
+			missing.add(t)
 
-		events.append(
-			{
-				"event_id": ids_by_type[spec.event_type],
-				"event_type": spec.event_type,
-				"event_kind": spec.event_kind,
-				"parent_event_ids": parent_event_ids,
-				"layer": spec.layer,
-				"entity_id": entity_id,
-				"payload": {},
-				"emitted_at": (base_time + timedelta(seconds=index)).isoformat(),
-			}
+	# Cascade: if any required parent type is missing, child must be missing.
+	if missing:
+		missing_changed = True
+		while missing_changed:
+			missing_changed = False
+			for spec in CANONICAL_ENROLLMENT_SPECS:
+				child = spec.event_type
+				if child in missing:
+					continue
+				# If any canonical parent is missing, child is missing.
+				if any(parent in missing for parent in spec.parent_event_types):
+					missing.add(child)
+					missing_changed = True
+
+	present.difference_update(missing)
+	return sorted(present)
+
+
+def generate_causality_rules_text(
+	*,
+	seed: int | None = None,
+	entity_count: int = 1,
+	inconsistency_rate: float,
+	missing_event_rate: float = 0.0,
+	run_id: str | None = None,
+) -> str:
+	"""Generate a banal, diff-friendly causality rules text format first.
+
+	This is the generator's first step. JSON/NDJSON events are materialized
+	from this intermediate representation.
+	"""
+	if entity_count < 1:
+		entity_count = 0
+	if inconsistency_rate < 0.0:
+		inconsistency_rate = 0.0
+	if inconsistency_rate > 1.0:
+		inconsistency_rate = 1.0
+	if missing_event_rate < 0.0:
+		missing_event_rate = 0.0
+	if missing_event_rate > 1.0:
+		missing_event_rate = 1.0
+
+	rng = random.Random(seed)
+	use_run_id = run_id or f"generator:seed={seed}:entities={entity_count}:inconsistency={inconsistency_rate}"
+
+	# Start from canonical types per entity.
+	all_types = [spec.event_type for spec in CANONICAL_ENROLLMENT_SPECS]
+	types_by_entity: dict[str, list[str]] = {}
+	edges_by_entity: dict[str, list[tuple[str, str]]] = {}
+
+	for entity_index in range(entity_count):
+		entity_id = f"enrollment-{entity_index + 1}"
+		present_types = _apply_missing_cascade(
+			rng=rng,
+			all_types=all_types,
+			missing_event_rate=missing_event_rate,
 		)
 
+		# With inconsistency, we may omit a decision event entirely.
+		if inconsistency_rate > 0.0:
+			for decision_type in ["AccessGranted", "EnrollmentCompleted"]:
+				if rng.random() < (inconsistency_rate / 4.0):
+					if decision_type in present_types:
+						present_types.remove(decision_type)
+
+		present_type_set = set(present_types)
+		types_by_entity[entity_id] = sorted(present_types)
+
+		# Canonical edges for present nodes.
+		edges: list[tuple[str, str]] = []
+		for child in CANONICAL_ENROLLMENT_SPECS:
+			if child.event_type not in present_type_set:
+				continue
+			for parent_type in child.parent_event_types:
+				if parent_type not in present_type_set:
+					continue
+				edges.append((parent_type, child.event_type))
+
+		# Mutate decision parent declarations only.
+		mutated_edges: list[tuple[str, str]] = []
+		by_child: dict[str, list[str]] = {}
+		for parent_type, child_type in edges:
+			by_child.setdefault(child_type, []).append(parent_type)
+
+		for child_type, correct_parents in by_child.items():
+			child_spec = spec_by_type().get(child_type)
+			if not child_spec:
+				continue
+			if child_spec.event_kind != "decision":
+				# Facts remain constrained to 0/1 parent.
+				for p in correct_parents:
+					mutated_edges.append((p, child_type))
+				continue
+
+			mutated_parent_types = _maybe_make_inconsistent_parent_types(
+				rng=rng,
+				correct_parent_types=list(correct_parents),
+				all_types=[t for t in present_types if t != child_type],
+				inconsistency_rate=inconsistency_rate,
+				max_wrong=3,
+			)
+			for p in mutated_parent_types:
+				if p in present_type_set and p != child_type:
+					mutated_edges.append((p, child_type))
+
+		edges_by_entity[entity_id] = sorted(set(mutated_edges))
+
+	rules = CausalityRules(run_id=use_run_id, types_by_entity=types_by_entity, edges_by_entity=edges_by_entity)
+	return format_causality_rules_text(rules)
+
+
+def _materialize_events_from_causality_spec(
+	*,
+	spec: _CausalitySpec,
+	seed: int | None,
+) -> list[Event]:
+	rng = random.Random(seed)
+	base_time = _base_time(seed=seed)
+	spec_lookup = spec_by_type()
+
+	events: list[Event] = []
+	for entity_index, entity_id in enumerate(sorted(spec.types_by_entity.keys())):
+		present_types = list(spec.types_by_entity.get(entity_id) or [])
+		present_set = set(present_types)
+		entity_base_time = base_time + timedelta(minutes=entity_index)
+
+		# Build parent_event_ids from edge pairs.
+		parents_by_child: dict[str, list[str]] = {}
+		for parent_type, child_type in spec.edges_by_entity.get(entity_id, []):
+			if parent_type not in present_set or child_type not in present_set:
+				continue
+			parents_by_child.setdefault(child_type, []).append(parent_type)
+
+		# Create stable IDs for present nodes.
+		ids_by_type = {t: _event_id(entity_id=entity_id, event_type=t) for t in present_types}
+
+		for index, event_type in enumerate(present_types):
+			s = spec_lookup.get(event_type)
+			if not s:
+				continue
+			parent_types = parents_by_child.get(event_type, [])
+			parent_event_ids = [ids_by_type[p] for p in parent_types if p in ids_by_type]
+			events.append(
+				{
+					"event_id": ids_by_type[event_type],
+					"event_type": event_type,
+					"event_kind": s.event_kind,
+					"parent_event_ids": parent_event_ids,
+					"layer": s.layer,
+					"entity_id": entity_id,
+					"payload": {},
+					"emitted_at": (entity_base_time + timedelta(seconds=index)).isoformat(),
+				}
+			)
+
+	# Arbitrary order: shuffle deterministically.
+	rng.shuffle(events)
 	return events
 
 
@@ -203,6 +276,7 @@ def generate_events_batch(
 	seed: int | None = None,
 	entity_count: int = 1,
 	inconsistency_rate: float = 0.0,
+	missing_event_rate: float = 0.0,
 ) -> List[Event]:
 	"""Generate a batch of synthetic events.
 
@@ -219,33 +293,31 @@ def generate_events_batch(
 	if inconsistency_rate > 1.0:
 		inconsistency_rate = 1.0
 
-	rng = random.Random(seed)
-	base_time = _base_time(seed=seed)
+	# Step 1: generate banal causality rules text.
+	rules_text = generate_causality_rules_text(
+		seed=seed,
+		entity_count=entity_count,
+		inconsistency_rate=inconsistency_rate,
+		missing_event_rate=missing_event_rate,
+	)
 
-	# Precompute all possible event ids so we can declare "incorrect" parents that still exist.
-	all_event_ids: List[str] = []
-	for entity_index in range(entity_count):
-		entity_id = f"enrollment-{entity_index + 1}"
-		for spec in _CANONICAL_SPECS:
-			all_event_ids.append(_event_id(entity_id=entity_id, event_type=spec.event_type))
+	# Step 2: parse and materialize JSON events.
+	spec = _parse_spec(rules_text)
+	return _materialize_events_from_causality_spec(spec=spec, seed=seed)
 
-	events: List[Event] = []
-	for entity_index in range(entity_count):
-		entity_id = f"enrollment-{entity_index + 1}"
-		entity_base_time = base_time + timedelta(minutes=entity_index)
-		events.extend(
-			_build_entity_events(
-				entity_id=entity_id,
-				seed_rng=rng,
-				base_time=entity_base_time,
-				inconsistency_rate=inconsistency_rate,
-				all_event_ids=all_event_ids,
-			)
-		)
 
-	# Arbitrary order: shuffle the stream. Deterministic under seed.
-	rng.shuffle(events)
-	return events
+def materialize_events_from_causality_rules_text(
+	*,
+	rules_text: str,
+	seed: int | None = None,
+) -> List[Event]:
+	"""Materialize JSON events from an explicit causality-rules text.
+
+	This is the generator's second step, exposed as a public API so that callers
+	can apply deterministic edits to declared causality before materialization.
+	"""
+	spec = _parse_spec(rules_text)
+	return _materialize_events_from_causality_spec(spec=spec, seed=seed)
 
 
 def generate_events_stream(

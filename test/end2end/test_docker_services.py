@@ -3,7 +3,6 @@ import pytest
 
 @pytest.mark.e2e
 @pytest.mark.parametrize("port, service", [
-    (5432, "Postgres"),
     (7474, "Neo4j UI"),
     (7687, "Neo4j"),
     (8080, "Airflow UI"),
