@@ -4,6 +4,13 @@
 
 This project is developed in **STRICT Test-Driven Development (TDD)** mode.
 
+### Exception: Synthetic Event Generator
+
+The synthetic event generator is governed by
+`.github/instructions/events_generator.instructions.md` and is an explicit
+exception to strict TDD: implement the generator first, then add the required
+functional tests at the end.
+
 GitHub Copilot operates in **STRICT AGENT MODE** while strictly following the
 **Red → Green → Refactor** cycle.
 
