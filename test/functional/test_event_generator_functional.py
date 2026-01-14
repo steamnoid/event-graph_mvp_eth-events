@@ -108,3 +108,23 @@ def test_generator_supports_inconsistent_declarations():
 		inconsistent_ag is None
 		or set(inconsistent_ag["parent_event_ids"]) != correct_parents
 	)
+
+import pytest
+
+
+@pytest.mark.functional
+def test_validate_consistent_generated_events_passes(tmp_path):
+	from event_generator import generate_events_file
+	from event_fixture_validator import validate_events_file
+
+	path = tmp_path / "events.json"
+	generate_events_file(
+		path=path,
+		format="json",
+		seed=123,
+		entity_count=3,
+		inconsistency_rate=0.0,
+	)
+
+	result = validate_events_file(path, mode="consistent")
+	assert result.is_valid

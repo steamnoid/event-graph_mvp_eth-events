@@ -5,20 +5,20 @@ import pendulum
 from airflow import DAG
 from airflow.operators.python import PythonOperator
 
-from helpers.enrollment.adapter import task_fetch_events_to_file
-from helpers.enrollment.graph import (
-    task_transform_edges_to_graph_file,
+from dag_helpers.enrollment.fetch_events_to_file.task import task_fetch_events_to_file
+from dag_helpers.enrollment.transform_edges_to_graph_file.task import task_transform_edges_to_graph_file
+from dag_helpers.enrollment.transform_events_to_normalized_file.task import (
+    task_transform_events_to_normalized_file,
+)
+from dag_helpers.enrollment.transform_normalized_to_edges_file.task import (
     task_transform_normalized_to_edges_file,
 )
-from helpers.enrollment.transformer import task_transform_events_to_normalized_file
-from helpers.enrollment.validator import (
-    task_validate_edges,
-    task_validate_graph,
-    task_validate_neo4j_readback,
-    task_validate_normalized_events,
-    task_validate_raw_events,
-)
-from helpers.neo4j.adapter import task_write_graph_to_neo4j
+from dag_helpers.enrollment.validate_edges.task import task_validate_edges
+from dag_helpers.enrollment.validate_graph.task import task_validate_graph
+from dag_helpers.enrollment.validate_neo4j_readback.task import task_validate_neo4j_readback
+from dag_helpers.enrollment.validate_normalized_events.task import task_validate_normalized_events
+from dag_helpers.enrollment.validate_raw_events.task import task_validate_raw_events
+from dag_helpers.enrollment.write_graph_to_neo4j.task import task_write_graph_to_neo4j
 
 
 DAG_ID = "enrollment_to_neo4j_graph"

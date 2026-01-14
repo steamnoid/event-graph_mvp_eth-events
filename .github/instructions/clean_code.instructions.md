@@ -186,6 +186,16 @@ Tests define observable behavior.
 If a test matches an error message (for example `pytest.raises(..., match=...)`),
 the message text is part of the contract and MUST remain compatible.
 
+## File Structure Rule (Mandatory)
+
+Order functions in each file from:
+1. Public entrypoints (highest abstraction)
+2. Public stage-level functions
+3. Domain logic / invariants
+4. Private helpers (prefixed with `_`) at the bottom
+
+The file must read top-down as a narrative.
+
 ---
 
 ## 9. Final Checklist (Must Pass)

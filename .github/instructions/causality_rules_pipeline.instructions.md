@@ -95,3 +95,17 @@ When `inconsistency_rate > 0.0`, do not enforce canonical correctness; enforce o
   - edges: `(:EnrollmentEvent)-[:CAUSES {run_id}]->(:EnrollmentEvent)`
 - The canonical representation must be derived from **declared parents** only (no inference).
 
+Notes:
+The canonical causality format operates on event_type, not event_id.
+This is intentional: the goal is to validate graph shape, not instance identity.
+
+This validation does not assert business correctness.
+It asserts structural causality preservation only.
+
+This document defines the only allowed notion of causality in this repository.
+Any causality not present here does not exist.
+
+Anti-inference rule:
+All causality must be declared upstream.
+Downstream must treat missing or incorrect causality as data, not a problem to fix.
+
