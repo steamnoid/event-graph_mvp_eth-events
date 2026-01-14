@@ -10,7 +10,10 @@ from .adapter import (  # noqa: F401
 	save_post_transformation_canonical_baseline_artifact,
 )
 
+from .task import fetch_data  # noqa: F401
+
 __all__ = [
+	"fetch_data",
 	"generate_fixture_files",
 	"read_fixture_file",
 	"transform_fixture_data_to_events",
