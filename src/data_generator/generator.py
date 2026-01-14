@@ -7,7 +7,7 @@ import random
 from pathlib import Path
 from typing import Any, Dict, Iterable, Iterator, List, Literal, Sequence
 
-from .canonical import CANONICAL_ENROLLMENT_SPECS, spec_by_type
+from .canonical_data_entity_rules import CANONICAL_ENROLLMENT_SPECS, spec_by_type
 from .causality_rules import CausalityRules, parse_causality_rules, render_causality_rules
 
 
