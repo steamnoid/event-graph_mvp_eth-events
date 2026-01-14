@@ -9,7 +9,7 @@ import pytest
 def test_task_fetch_data_returns_two_baseline_paths(tmp_path: Path) -> None:
 	from dag_helpers.fetch_data.task import fetch_data
 
-	pre_path, post_path = fetch_data(
+	events_baseline, edges_baseline = fetch_data(
 		artifact_dir=tmp_path / "artifacts",
 		out_events=tmp_path / "events.ndjson",
 		out_rules=tmp_path / "rules.txt",
@@ -21,6 +21,7 @@ def test_task_fetch_data_returns_two_baseline_paths(tmp_path: Path) -> None:
 		run_id="fixture:task",
 	)
 
-	assert pre_path.exists()
-	assert post_path.exists()
-	assert pre_path.read_text(encoding="utf-8") == post_path.read_text(encoding="utf-8")
+	assert events_baseline.exists()
+	assert edges_baseline.exists()
+	assert events_baseline.name == "baseline_events.json"
+	assert edges_baseline.name == "baseline_edges.json"

@@ -90,51 +90,6 @@ def write_edges_to_file(*, edges: Iterable[Edge], path: str | Path) -> Path:
 	return path
 
 
-def transform_edges_to_canonical_baseline_format(edges: Iterable[Edge]) -> list[Edge]:
-	"""Make edges diff-friendly and stable (canonical baseline).
-
-	Baseline rules:
-	- retain only {from, to}
-	- coerce values to strings
-	- stable ordering by (from, to)
-	"""
-	baseline: list[Edge] = []
-	for idx, edge in enumerate(edges):
-		if not isinstance(edge, dict):
-			raise ValueError(f"edge[{idx}] must be a dict")
-		if "from" not in edge or "to" not in edge:
-			raise ValueError(f"edge[{idx}] must contain 'from' and 'to'")
-		baseline.append({"from": str(edge["from"]), "to": str(edge["to"])})
-
-	return sorted(baseline, key=lambda e: (e.get("from", ""), e.get("to", "")))
-
-
-def save_pre_transformation_canonical_baseline_artifact(
-	*,
-	fixture_data: Iterable[Edge],
-	path: str | Path,
-) -> Path:
-	"""Persist a canonical edge baseline before this transformation step."""
-	path = Path(path)
-	path.parent.mkdir(parents=True, exist_ok=True)
-	baseline = transform_edges_to_canonical_baseline_format(fixture_data)
-	path.write_text(json.dumps(baseline, indent=2, sort_keys=True) + "\n", encoding="utf-8")
-	return path
-
-
-def save_post_transformation_canonical_baseline_artifact(
-	*,
-	edges: Iterable[Edge],
-	path: str | Path,
-) -> Path:
-	"""Persist a canonical edge baseline after this transformation step."""
-	path = Path(path)
-	path.parent.mkdir(parents=True, exist_ok=True)
-	baseline = transform_edges_to_canonical_baseline_format(edges)
-	path.write_text(json.dumps(baseline, indent=2, sort_keys=True) + "\n", encoding="utf-8")
-	return path
-
-
 def _index_events_by_id(events: Sequence[Event]) -> dict[str, Event]:
 	by_id: dict[str, Event] = {}
 	for event in events:

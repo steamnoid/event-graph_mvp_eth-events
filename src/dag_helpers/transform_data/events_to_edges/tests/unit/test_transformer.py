@@ -51,7 +51,7 @@ def test_build_edges_requires_parent_ids_list() -> None:
 
 @pytest.mark.unit
 def test_transform_edges_to_canonical_baseline_format_sorts_and_normalizes() -> None:
-	from dag_helpers.transform_data.events_to_edges.transformer import (
+	from dag_helpers.transform_data.events_to_edges.canonical_baseline_helper import (
 		transform_edges_to_canonical_baseline_format,
 	)
 
@@ -69,21 +69,12 @@ def test_transform_edges_to_canonical_baseline_format_sorts_and_normalizes() -> 
 
 @pytest.mark.unit
 def test_save_edge_baseline_artifacts_write_canonical_json(tmp_path: Path) -> None:
-	from dag_helpers.transform_data.events_to_edges.transformer import (
-		save_post_transformation_canonical_baseline_artifact,
-		save_pre_transformation_canonical_baseline_artifact,
-	)
+	from dag_helpers.transform_data.events_to_edges.canonical_baseline_helper import save_canonical_baseline_artifact
 
 	edges = [{"from": "B", "to": "C"}, {"from": "A", "to": "B"}]
 
-	pre_path = save_pre_transformation_canonical_baseline_artifact(
-		fixture_data=edges,
-		path=tmp_path / "pre_edges.baseline.json",
-	)
-	post_path = save_post_transformation_canonical_baseline_artifact(
-		edges=edges,
-		path=tmp_path / "post_edges.baseline.json",
-	)
+	pre_path = save_canonical_baseline_artifact(edges=edges, path=tmp_path / "baseline_edges_1.json")
+	post_path = save_canonical_baseline_artifact(edges=edges, path=tmp_path / "baseline_edges_2.json")
 
 	assert pre_path.exists() and post_path.exists()
 	pre = json.loads(pre_path.read_text(encoding="utf-8"))

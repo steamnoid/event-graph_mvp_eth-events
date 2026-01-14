@@ -70,7 +70,7 @@ def test_canonical_baseline_artifacts_identical(tmp_path: Path) -> None:
 	events_1 = transform_fixture_data_to_events(fixture_data)
 	events_2 = transform_fixture_data_to_events(fixture_data)
 
-	baseline_1 = save_canonical_baseline_artifact(events=events_1, path=tmp_path / "baseline_1.json")
-	baseline_2 = save_canonical_baseline_artifact(events=events_2, path=tmp_path / "baseline_2.json")
+	pre_path = save_canonical_baseline_artifact(events=events_1, path=tmp_path / "baseline_1.json")
+	post_path = save_canonical_baseline_artifact(events=events_2, path=tmp_path / "baseline_2.json")
 
-	assert baseline_1.read_text(encoding="utf-8") == baseline_2.read_text(encoding="utf-8")
+	assert pre_path.read_text(encoding="utf-8") == post_path.read_text(encoding="utf-8")

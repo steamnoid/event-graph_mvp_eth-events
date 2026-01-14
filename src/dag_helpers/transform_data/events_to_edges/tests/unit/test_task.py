@@ -19,15 +19,13 @@ def test_task_events_to_edges_emits_baselines_and_edges(tmp_path: Path) -> None:
 	]
 	input_events.write_text("\n".join(json.dumps(e) for e in events) + "\n", encoding="utf-8")
 
-	pre, post, edges_path = events_to_edges(
+	baseline, edges_path = events_to_edges(
 		artifact_dir=tmp_path / "artifacts_edges",
 		source_events=input_events,
 		out_edges=tmp_path / "edges.json",
 	)
 
-	assert pre.exists() and post.exists()
+	assert baseline.exists()
 	assert edges_path.exists()
-	# This stage validates edge canonical baselines (pre: in-memory, post: re-read from disk).
-	assert pre.read_text(encoding="utf-8") == post.read_text(encoding="utf-8")
 	# Edges are written as a JSON array.
 	assert edges_path.read_text(encoding="utf-8").lstrip().startswith("[")

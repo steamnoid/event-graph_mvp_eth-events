@@ -17,7 +17,7 @@ def test_fetch_validate_enhance_validate_pipeline(tmp_path: Path) -> None:
 	rules_path = tmp_path / "rules.txt"
 	fetch_artifacts_dir = tmp_path / "artifacts_fetch"
 
-	pre_fetch, post_fetch = fetch_data(
+	ref_events_baseline, ref_edges_baseline = fetch_data(
 		artifact_dir=fetch_artifacts_dir,
 		out_events=events_path,
 		out_rules=rules_path,
@@ -28,12 +28,12 @@ def test_fetch_validate_enhance_validate_pipeline(tmp_path: Path) -> None:
 		missing_event_rate=0.0,
 		run_id="integration:fetch",
 	)
-	assert pre_fetch.exists() and post_fetch.exists()
+	assert ref_events_baseline.exists() and ref_edges_baseline.exists()
 
-	# Stage 1 validation (between tasks)
+	# Stage 1 validation (reference baseline is self-consistent)
 	validated_c1 = validate_canonical_baseline(
-		pre_baseline_path=pre_fetch,
-		post_baseline_path=post_fetch,
+		reference_baseline_path=ref_events_baseline,
+		candidate_baseline_path=ref_events_baseline,
 		artifact_dir=tmp_path / "artifacts_validate_c1",
 		out_name="C1.json",
 	)
@@ -43,18 +43,18 @@ def test_fetch_validate_enhance_validate_pipeline(tmp_path: Path) -> None:
 	enhance_artifacts_dir = tmp_path / "artifacts_enhance"
 	enhanced_events_path = tmp_path / "enhanced_events.ndjson"
 
-	pre_enhance, post_enhance, _ = enhance_data(
+	enhance_baseline, _enhanced_out = enhance_data(
 		artifact_dir=enhance_artifacts_dir,
 		source_events=events_path,
 		out_events=enhanced_events_path,
 		format="ndjson",
 	)
-	assert pre_enhance.exists() and post_enhance.exists() and enhanced_events_path.exists()
+	assert enhance_baseline.exists() and enhanced_events_path.exists()
 
-	# Stage 2 validation (between tasks)
+	# Stage 2 validation (candidate vs fetch reference)
 	validated_c2 = validate_canonical_baseline(
-		pre_baseline_path=pre_enhance,
-		post_baseline_path=post_enhance,
+		reference_baseline_path=ref_events_baseline,
+		candidate_baseline_path=enhance_baseline,
 		artifact_dir=tmp_path / "artifacts_validate_c2",
 		out_name="C2.json",
 	)
@@ -64,23 +64,23 @@ def test_fetch_validate_enhance_validate_pipeline(tmp_path: Path) -> None:
 	edges_artifacts_dir = tmp_path / "artifacts_edges"
 	edges_path = tmp_path / "edges.json"
 
-	pre_edges, post_edges, out_edges = events_to_edges(
+	edges_baseline, out_edges = events_to_edges(
 		artifact_dir=edges_artifacts_dir,
 		source_events=enhanced_events_path,
 		out_edges=edges_path,
 	)
-	assert pre_edges.exists() and post_edges.exists() and out_edges.exists()
+	assert edges_baseline.exists() and out_edges.exists()
 
-	# Stage 3 validation (between tasks)
+	# Stage 3 validation (candidate vs fetch reference)
 	validated_c3 = validate_canonical_baseline(
-		pre_baseline_path=pre_edges,
-		post_baseline_path=post_edges,
+		reference_baseline_path=ref_edges_baseline,
+		candidate_baseline_path=edges_baseline,
 		artifact_dir=tmp_path / "artifacts_validate_c3",
 		out_name="C3.json",
 	)
 	assert validated_c3.exists()
 
 	# Sanity: validated baselines are stable handoff artifacts
-	assert validated_c1.read_text(encoding="utf-8") == pre_fetch.read_text(encoding="utf-8")
-	assert validated_c2.read_text(encoding="utf-8") == pre_enhance.read_text(encoding="utf-8")
-	assert validated_c3.read_text(encoding="utf-8") == pre_edges.read_text(encoding="utf-8")
+	assert validated_c1.read_text(encoding="utf-8") == ref_events_baseline.read_text(encoding="utf-8")
+	assert validated_c2.read_text(encoding="utf-8") == enhance_baseline.read_text(encoding="utf-8")
+	assert validated_c3.read_text(encoding="utf-8") == edges_baseline.read_text(encoding="utf-8")

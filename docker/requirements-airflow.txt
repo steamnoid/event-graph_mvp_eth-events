@@ -1,0 +1,9 @@
+# Extra Python deps for Airflow containers (installed via _PIP_ADDITIONAL_REQUIREMENTS)
+# Keep this focused to reduce dependency conflicts with Airflow.
+#
+# NOTE: Airflow 2.6.2 is not compatible with pydantic v2.
+# Keep web3 < 7 to avoid pydantic v2, but use a Python 3.11-compatible web3.
+pydantic<2
+web3>=6,<7
+parsimonious>=0.10.0
+neo4j==4.4.12

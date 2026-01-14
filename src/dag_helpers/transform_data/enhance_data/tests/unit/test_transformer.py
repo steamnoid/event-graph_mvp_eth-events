@@ -45,11 +45,8 @@ def test_event_type_to_event_name_handles_acronyms() -> None:
 
 @pytest.mark.unit
 def test_canonical_baseline_artifacts_identical(tmp_path: Path) -> None:
-	from dag_helpers.transform_data.enhance_data.transformer import (
-		enhance_events_add_event_name,
-		save_post_transformation_canonical_baseline_artifact,
-		save_pre_transformation_canonical_baseline_artifact,
-	)
+	from dag_helpers.transform_data.enhance_data.canonical_baseline_helper import save_canonical_baseline_artifact
+	from dag_helpers.transform_data.enhance_data.transformer import enhance_events_add_event_name
 
 	from data_generator.generator import (
 		generate_causality_rules_text,
@@ -66,14 +63,8 @@ def test_canonical_baseline_artifacts_identical(tmp_path: Path) -> None:
 	original_events = materialize_events_from_causality_rules_text(rules_text=rules_text, seed=123)
 	enhanced_events = enhance_events_add_event_name(original_events)
 
-	pre_path = save_pre_transformation_canonical_baseline_artifact(
-		fixture_data=original_events,
-		path=tmp_path / "pre_enhance.baseline.json",
-	)
-	post_path = save_post_transformation_canonical_baseline_artifact(
-		events=enhanced_events,
-		path=tmp_path / "post_enhance.baseline.json",
-	)
+	pre_path = save_canonical_baseline_artifact(events=original_events, path=tmp_path / "baseline_original.json")
+	post_path = save_canonical_baseline_artifact(events=enhanced_events, path=tmp_path / "baseline_enhanced.json")
 
 	assert pre_path.read_text(encoding="utf-8") == post_path.read_text(encoding="utf-8")
 

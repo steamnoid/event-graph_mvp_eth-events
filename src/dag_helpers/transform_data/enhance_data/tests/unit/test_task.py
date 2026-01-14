@@ -30,13 +30,11 @@ def test_task_enhance_data_returns_baselines_and_output(tmp_path: Path) -> None:
 	]
 	input_events.write_text("\n".join(json.dumps(e) for e in events) + "\n", encoding="utf-8")
 
-	pre, post, out_events = enhance_data(
+	baseline, out_events = enhance_data(
 		artifact_dir=tmp_path / "artifacts_enhance",
 		source_events=input_events,
 		out_events=tmp_path / "enhanced.ndjson",
 		format="ndjson",
 	)
 
-	assert pre.exists() and post.exists() and out_events.exists()
-	# Baselines should stay identical (event_name is ignored by enhance baseline).
-	assert pre.read_text(encoding="utf-8") == post.read_text(encoding="utf-8")
+	assert baseline.exists() and out_events.exists()

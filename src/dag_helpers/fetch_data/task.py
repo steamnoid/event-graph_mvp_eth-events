@@ -7,9 +7,14 @@ from .adapter import (
 	FixtureFormat,
 	generate_fixture_files,
 	read_fixture_file,
-	save_post_transformation_canonical_baseline_artifact,
-	save_pre_transformation_canonical_baseline_artifact,
 	transform_fixture_data_to_events,
+)
+
+from .canonical_baseline_helper import save_canonical_baseline_artifact as save_events_baseline
+
+from dag_helpers.transform_data.events_to_edges.transformer import build_edges
+from dag_helpers.transform_data.events_to_edges.canonical_baseline_helper import (
+	save_canonical_baseline_artifact as save_edges_baseline,
 )
 
 
@@ -24,6 +29,7 @@ def fetch_data(
 	missing_event_rate: float = 0.0,
 	run_id: str | None = None,
 	out_rules: Optional[str | Path] = None,
+
 ) -> tuple[Path, Path]:
 	"""Stage: fetch/generate data and emit canonical baselines.
 
@@ -31,7 +37,7 @@ def fetch_data(
 	validated via a (pre, post) canonical baseline artifact pair.
 
 	Returns:
-		(pre_baseline_path, post_baseline_path)
+		(reference_events_baseline_path, reference_edges_baseline_path)
 	"""
 	artifact_dir = Path(artifact_dir)
 	artifact_dir.mkdir(parents=True, exist_ok=True)
@@ -50,19 +56,19 @@ def fetch_data(
 
 	fixture_data = read_fixture_file(events_path)
 
-	# Canonical baseline before any transformation
-	pre_path = save_pre_transformation_canonical_baseline_artifact(
-		fixture_data=fixture_data,
-		path=artifact_dir / "pre_baseline.json",
-	)
-
-	# Transform (currently identity, but kept as a seam)
+	# Transform fixture payload into event dicts.
 	events = transform_fixture_data_to_events(fixture_data)
 
-	# Canonical baseline after transformation
-	post_path = save_post_transformation_canonical_baseline_artifact(
+	# Reference canonical baselines for downstream validation.
+	events_baseline_path = save_events_baseline(
 		events=events,
-		path=artifact_dir / "post_baseline.json",
+		path=artifact_dir / "baseline_events.json",
 	)
 
-	return pre_path, post_path
+	edges = build_edges(events)
+	edges_baseline_path = save_edges_baseline(
+		edges=edges,
+		path=artifact_dir / "baseline_edges.json",
+	)
+
+	return events_baseline_path, edges_baseline_path
