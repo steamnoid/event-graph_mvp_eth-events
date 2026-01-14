@@ -8,7 +8,7 @@ import pytest
 
 @pytest.mark.unit
 def test_enhance_events_add_event_name_adds_missing() -> None:
-	from dag_helpers.enhance_data.transformer import enhance_events_add_event_name
+	from dag_helpers.transform_data.enhance_data.transformer import enhance_events_add_event_name
 
 	events: list[dict[str, Any]] = [
 		{"event_type": "PaymentConfirmed", "payload": {}},
@@ -28,7 +28,7 @@ def test_enhance_events_add_event_name_adds_missing() -> None:
 
 @pytest.mark.unit
 def test_enhance_events_add_event_name_handles_empty_event_name() -> None:
-	from dag_helpers.enhance_data.transformer import enhance_events_add_event_name
+	from dag_helpers.transform_data.enhance_data.transformer import enhance_events_add_event_name
 
 	events = [{"event_type": "EnrollmentCompleted", "event_name": ""}]
 	out = enhance_events_add_event_name(events)
@@ -37,7 +37,7 @@ def test_enhance_events_add_event_name_handles_empty_event_name() -> None:
 
 @pytest.mark.unit
 def test_event_type_to_event_name_handles_acronyms() -> None:
-	from dag_helpers.enhance_data.transformer import enhance_events_add_event_name
+	from dag_helpers.transform_data.enhance_data.transformer import enhance_events_add_event_name
 
 	out = enhance_events_add_event_name([{"event_type": "HTTPServerStarted"}])
 	assert out[0]["event_name"] == "HTTP Server Started"
@@ -45,7 +45,7 @@ def test_event_type_to_event_name_handles_acronyms() -> None:
 
 @pytest.mark.unit
 def test_canonical_baseline_artifacts_identical(tmp_path: Path) -> None:
-	from dag_helpers.enhance_data.transformer import (
+	from dag_helpers.transform_data.enhance_data.transformer import (
 		enhance_events_add_event_name,
 		save_post_transformation_canonical_baseline_artifact,
 		save_pre_transformation_canonical_baseline_artifact,
@@ -76,3 +76,14 @@ def test_canonical_baseline_artifacts_identical(tmp_path: Path) -> None:
 	)
 
 	assert pre_path.read_text(encoding="utf-8") == post_path.read_text(encoding="utf-8")
+
+
+@pytest.mark.unit
+def test_read_events_from_file_reads_ndjson(tmp_path: Path) -> None:
+	from dag_helpers.transform_data.enhance_data.transformer import read_events_from_file
+
+	path = tmp_path / "events.ndjson"
+	path.write_text('{"event_id": "A"}\n{"event_id": "B"}\n', encoding="utf-8")
+
+	events = read_events_from_file(path)
+	assert events == [{"event_id": "A"}, {"event_id": "B"}]

@@ -1,14 +1,14 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Optional
-
-from dag_helpers.fetch_data.adapter import FixtureFormat, read_fixture_file, write_events_to_file
 
 from .transformer import (
+	FixtureFormat,
 	enhance_events_add_event_name,
+	read_events_from_file,
 	save_post_transformation_canonical_baseline_artifact,
 	save_pre_transformation_canonical_baseline_artifact,
+	write_events_to_file,
 )
 
 
@@ -19,7 +19,7 @@ def enhance_data(
 	out_events: str | Path,
 	format: FixtureFormat = "ndjson",
 ) -> tuple[Path, Path, Path]:
-	"""Stage: enhance events (currently: add `event_name`) and emit canonical baselines.
+	"""Transform stage: enhance events and emit canonical baselines.
 
 	Returns:
 		(pre_baseline_path, post_baseline_path, out_events_path)
@@ -27,7 +27,7 @@ def enhance_data(
 	artifact_dir = Path(artifact_dir)
 	artifact_dir.mkdir(parents=True, exist_ok=True)
 
-	fixture_data = read_fixture_file(source_events)
+	fixture_data = read_events_from_file(source_events)
 
 	pre_path = save_pre_transformation_canonical_baseline_artifact(
 		fixture_data=fixture_data,
