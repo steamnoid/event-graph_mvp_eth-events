@@ -6,4 +6,4 @@
 pydantic<2
 web3>=6,<7
 parsimonious>=0.10.0
-neo4j==4.4.12
+neo4j==5.28.3

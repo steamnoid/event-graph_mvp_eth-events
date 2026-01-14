@@ -14,7 +14,7 @@ x-airflow-base: &airflow-base
     - ./logs:/opt/airflow/logs
     - ./plugins:/opt/airflow/plugins
     - ./requirements-airflow.txt:/opt/airflow/requirements-airflow.txt:ro
-    - ../src/helpers:/opt/airflow/dags/helpers:ro
+    - ../src:/opt/airflow/dags/src:ro
 
 services:
   postgres:

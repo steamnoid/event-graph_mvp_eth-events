@@ -1,0 +1,338 @@
+[
+  {
+    "from": "enrollment-1:AccessGranted",
+    "to": "enrollment-1:EnrollmentCompleted"
+  },
+  {
+    "from": "enrollment-1:ContentAvailabilityChecked",
+    "to": "enrollment-1:ContentAvailable"
+  },
+  {
+    "from": "enrollment-1:ContentAvailable",
+    "to": "enrollment-1:ContentPrepared"
+  },
+  {
+    "from": "enrollment-1:ContentPrepared",
+    "to": "enrollment-1:AccessGranted"
+  },
+  {
+    "from": "enrollment-1:CourseAccessRequested",
+    "to": "enrollment-1:ContentAvailabilityChecked"
+  },
+  {
+    "from": "enrollment-1:CourseEnrollmentRequested",
+    "to": "enrollment-1:PaymentProcessingRequested"
+  },
+  {
+    "from": "enrollment-1:EligibilityChecked",
+    "to": "enrollment-1:EligibilityPassed"
+  },
+  {
+    "from": "enrollment-1:EligibilityPassed",
+    "to": "enrollment-1:AccessGranted"
+  },
+  {
+    "from": "enrollment-1:EnrollmentCompleted",
+    "to": "enrollment-1:EnrollmentArchived"
+  },
+  {
+    "from": "enrollment-1:PaymentConfirmed",
+    "to": "enrollment-1:AccessGranted"
+  },
+  {
+    "from": "enrollment-1:PaymentConfirmed",
+    "to": "enrollment-1:CourseAccessRequested"
+  },
+  {
+    "from": "enrollment-1:PaymentConfirmed",
+    "to": "enrollment-1:UserProfileLoaded"
+  },
+  {
+    "from": "enrollment-1:PaymentProcessingRequested",
+    "to": "enrollment-1:PaymentConfirmed"
+  },
+  {
+    "from": "enrollment-1:UserProfileLoaded",
+    "to": "enrollment-1:EligibilityChecked"
+  },
+  {
+    "from": "enrollment-2:AccessGranted",
+    "to": "enrollment-2:EnrollmentCompleted"
+  },
+  {
+    "from": "enrollment-2:ContentAvailabilityChecked",
+    "to": "enrollment-2:ContentAvailable"
+  },
+  {
+    "from": "enrollment-2:ContentAvailable",
+    "to": "enrollment-2:ContentPrepared"
+  },
+  {
+    "from": "enrollment-2:ContentPrepared",
+    "to": "enrollment-2:AccessGranted"
+  },
+  {
+    "from": "enrollment-2:CourseAccessRequested",
+    "to": "enrollment-2:ContentAvailabilityChecked"
+  },
+  {
+    "from": "enrollment-2:CourseEnrollmentRequested",
+    "to": "enrollment-2:PaymentProcessingRequested"
+  },
+  {
+    "from": "enrollment-2:EligibilityChecked",
+    "to": "enrollment-2:EligibilityPassed"
+  },
+  {
+    "from": "enrollment-2:EligibilityPassed",
+    "to": "enrollment-2:AccessGranted"
+  },
+  {
+    "from": "enrollment-2:EnrollmentCompleted",
+    "to": "enrollment-2:EnrollmentArchived"
+  },
+  {
+    "from": "enrollment-2:PaymentConfirmed",
+    "to": "enrollment-2:AccessGranted"
+  },
+  {
+    "from": "enrollment-2:PaymentConfirmed",
+    "to": "enrollment-2:CourseAccessRequested"
+  },
+  {
+    "from": "enrollment-2:PaymentConfirmed",
+    "to": "enrollment-2:UserProfileLoaded"
+  },
+  {
+    "from": "enrollment-2:PaymentProcessingRequested",
+    "to": "enrollment-2:PaymentConfirmed"
+  },
+  {
+    "from": "enrollment-2:UserProfileLoaded",
+    "to": "enrollment-2:EligibilityChecked"
+  },
+  {
+    "from": "enrollment-3:AccessGranted",
+    "to": "enrollment-3:EnrollmentCompleted"
+  },
+  {
+    "from": "enrollment-3:ContentAvailabilityChecked",
+    "to": "enrollment-3:ContentAvailable"
+  },
+  {
+    "from": "enrollment-3:ContentAvailable",
+    "to": "enrollment-3:ContentPrepared"
+  },
+  {
+    "from": "enrollment-3:ContentPrepared",
+    "to": "enrollment-3:AccessGranted"
+  },
+  {
+    "from": "enrollment-3:CourseAccessRequested",
+    "to": "enrollment-3:ContentAvailabilityChecked"
+  },
+  {
+    "from": "enrollment-3:CourseEnrollmentRequested",
+    "to": "enrollment-3:PaymentProcessingRequested"
+  },
+  {
+    "from": "enrollment-3:EligibilityChecked",
+    "to": "enrollment-3:EligibilityPassed"
+  },
+  {
+    "from": "enrollment-3:EligibilityPassed",
+    "to": "enrollment-3:AccessGranted"
+  },
+  {
+    "from": "enrollment-3:EnrollmentCompleted",
+    "to": "enrollment-3:EnrollmentArchived"
+  },
+  {
+    "from": "enrollment-3:PaymentConfirmed",
+    "to": "enrollment-3:AccessGranted"
+  },
+  {
+    "from": "enrollment-3:PaymentConfirmed",
+    "to": "enrollment-3:CourseAccessRequested"
+  },
+  {
+    "from": "enrollment-3:PaymentConfirmed",
+    "to": "enrollment-3:UserProfileLoaded"
+  },
+  {
+    "from": "enrollment-3:PaymentProcessingRequested",
+    "to": "enrollment-3:PaymentConfirmed"
+  },
+  {
+    "from": "enrollment-3:UserProfileLoaded",
+    "to": "enrollment-3:EligibilityChecked"
+  },
+  {
+    "from": "enrollment-4:AccessGranted",
+    "to": "enrollment-4:EnrollmentCompleted"
+  },
+  {
+    "from": "enrollment-4:ContentAvailabilityChecked",
+    "to": "enrollment-4:ContentAvailable"
+  },
+  {
+    "from": "enrollment-4:ContentAvailable",
+    "to": "enrollment-4:ContentPrepared"
+  },
+  {
+    "from": "enrollment-4:ContentPrepared",
+    "to": "enrollment-4:AccessGranted"
+  },
+  {
+    "from": "enrollment-4:CourseAccessRequested",
+    "to": "enrollment-4:ContentAvailabilityChecked"
+  },
+  {
+    "from": "enrollment-4:CourseEnrollmentRequested",
+    "to": "enrollment-4:PaymentProcessingRequested"
+  },
+  {
+    "from": "enrollment-4:EligibilityChecked",
+    "to": "enrollment-4:EligibilityPassed"
+  },
+  {
+    "from": "enrollment-4:EligibilityPassed",
+    "to": "enrollment-4:AccessGranted"
+  },
+  {
+    "from": "enrollment-4:EnrollmentCompleted",
+    "to": "enrollment-4:EnrollmentArchived"
+  },
+  {
+    "from": "enrollment-4:PaymentConfirmed",
+    "to": "enrollment-4:AccessGranted"
+  },
+  {
+    "from": "enrollment-4:PaymentConfirmed",
+    "to": "enrollment-4:CourseAccessRequested"
+  },
+  {
+    "from": "enrollment-4:PaymentConfirmed",
+    "to": "enrollment-4:UserProfileLoaded"
+  },
+  {
+    "from": "enrollment-4:PaymentProcessingRequested",
+    "to": "enrollment-4:PaymentConfirmed"
+  },
+  {
+    "from": "enrollment-4:UserProfileLoaded",
+    "to": "enrollment-4:EligibilityChecked"
+  },
+  {
+    "from": "enrollment-5:AccessGranted",
+    "to": "enrollment-5:EnrollmentCompleted"
+  },
+  {
+    "from": "enrollment-5:ContentAvailabilityChecked",
+    "to": "enrollment-5:ContentAvailable"
+  },
+  {
+    "from": "enrollment-5:ContentAvailable",
+    "to": "enrollment-5:ContentPrepared"
+  },
+  {
+    "from": "enrollment-5:ContentPrepared",
+    "to": "enrollment-5:AccessGranted"
+  },
+  {
+    "from": "enrollment-5:CourseAccessRequested",
+    "to": "enrollment-5:ContentAvailabilityChecked"
+  },
+  {
+    "from": "enrollment-5:CourseEnrollmentRequested",
+    "to": "enrollment-5:PaymentProcessingRequested"
+  },
+  {
+    "from": "enrollment-5:EligibilityChecked",
+    "to": "enrollment-5:EligibilityPassed"
+  },
+  {
+    "from": "enrollment-5:EligibilityPassed",
+    "to": "enrollment-5:AccessGranted"
+  },
+  {
+    "from": "enrollment-5:EnrollmentCompleted",
+    "to": "enrollment-5:EnrollmentArchived"
+  },
+  {
+    "from": "enrollment-5:PaymentConfirmed",
+    "to": "enrollment-5:AccessGranted"
+  },
+  {
+    "from": "enrollment-5:PaymentConfirmed",
+    "to": "enrollment-5:CourseAccessRequested"
+  },
+  {
+    "from": "enrollment-5:PaymentConfirmed",
+    "to": "enrollment-5:UserProfileLoaded"
+  },
+  {
+    "from": "enrollment-5:PaymentProcessingRequested",
+    "to": "enrollment-5:PaymentConfirmed"
+  },
+  {
+    "from": "enrollment-5:UserProfileLoaded",
+    "to": "enrollment-5:EligibilityChecked"
+  },
+  {
+    "from": "enrollment-6:AccessGranted",
+    "to": "enrollment-6:EnrollmentCompleted"
+  },
+  {
+    "from": "enrollment-6:ContentAvailabilityChecked",
+    "to": "enrollment-6:ContentAvailable"
+  },
+  {
+    "from": "enrollment-6:ContentAvailable",
+    "to": "enrollment-6:ContentPrepared"
+  },
+  {
+    "from": "enrollment-6:ContentPrepared",
+    "to": "enrollment-6:AccessGranted"
+  },
+  {
+    "from": "enrollment-6:CourseAccessRequested",
+    "to": "enrollment-6:ContentAvailabilityChecked"
+  },
+  {
+    "from": "enrollment-6:CourseEnrollmentRequested",
+    "to": "enrollment-6:PaymentProcessingRequested"
+  },
+  {
+    "from": "enrollment-6:EligibilityChecked",
+    "to": "enrollment-6:EligibilityPassed"
+  },
+  {
+    "from": "enrollment-6:EligibilityPassed",
+    "to": "enrollment-6:AccessGranted"
+  },
+  {
+    "from": "enrollment-6:EnrollmentCompleted",
+    "to": "enrollment-6:EnrollmentArchived"
+  },
+  {
+    "from": "enrollment-6:PaymentConfirmed",
+    "to": "enrollment-6:AccessGranted"
+  },
+  {
+    "from": "enrollment-6:PaymentConfirmed",
+    "to": "enrollment-6:CourseAccessRequested"
+  },
+  {
+    "from": "enrollment-6:PaymentConfirmed",
+    "to": "enrollment-6:UserProfileLoaded"
+  },
+  {
+    "from": "enrollment-6:PaymentProcessingRequested",
+    "to": "enrollment-6:PaymentConfirmed"
+  },
+  {
+    "from": "enrollment-6:UserProfileLoaded",
+    "to": "enrollment-6:EligibilityChecked"
+  }
+]
