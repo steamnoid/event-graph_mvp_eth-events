@@ -205,7 +205,7 @@ def write_graph_to_neo4j(
 		node_rows.append({"event_id": str(event_id), "properties": props})
 
 	# Validate and canonicalize edges (for deterministic behavior).
-	edges: list[Edge] = []
+	rel_rows: list[dict[str, Any]] = []
 	for idx, rel in enumerate(rels_raw):
 		if not isinstance(rel, dict):
 			raise ValueError(f"relationship[{idx}] must be a dict")
@@ -213,9 +213,19 @@ def write_graph_to_neo4j(
 			raise ValueError(f"relationship[{idx}].type must be '{rel_type}'")
 		if "from" not in rel or "to" not in rel:
 			raise ValueError(f"relationship[{idx}] must contain 'from' and 'to'")
-		edges.append({"from": str(rel["from"]), "to": str(rel["to"])})
+		props = rel.get("properties") or {}
+		if not isinstance(props, dict):
+			raise ValueError(f"relationship[{idx}].properties must be a dict")
+		# Ensure run_id is always present and consistent.
+		props = dict(props)
+		props["run_id"] = str(run_id)
+		rel_rows.append({"from": str(rel["from"]), "to": str(rel["to"]), "properties": props})
 
-	canonical_edges = transform_edges_to_canonical_baseline_format(edges)
+	# Deterministic ordering.
+	rel_rows = sorted(rel_rows, key=lambda r: (r.get("from", ""), r.get("to", "")))
+	canonical_edges = transform_edges_to_canonical_baseline_format(
+		[{"from": r["from"], "to": r["to"]} for r in rel_rows]
+	)
 
 	driver = GraphDatabase.driver(config.uri, auth=(config.user, config.password))
 	try:
@@ -256,15 +266,16 @@ def write_graph_to_neo4j(
 			result = session.run(
 				(
 					"""
-					UNWIND $edges AS e
+					UNWIND $rels AS e
 					MERGE (a:Event {run_id: $run_id, event_id: e.from})
 					MERGE (b:Event {run_id: $run_id, event_id: e.to})
 					MERGE (a)-[r:%s {run_id: $run_id}]->(b)
+					SET r += e.properties
 					RETURN count(r) AS rel_count
 					"""
 					% rel_type
 				),
-				edges=canonical_edges,
+				rels=rel_rows,
 				run_id=run_id,
 			)
 			record = result.single()

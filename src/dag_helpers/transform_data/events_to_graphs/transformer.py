@@ -64,7 +64,16 @@ def build_graph_batch(
 	run_id: str | None = None,
 	node_label: str = "Event",
 	rel_type: str = "CAUSES",
-	include_node_properties: Iterable[str] = ("event_type", "event_name"),
+	include_node_properties: Iterable[str] = (
+		"event_type",
+		"event_name",
+		"event_kind",
+		"layer",
+		"entity_id",
+		"parent_event_ids",
+		"emitted_at",
+		"payload",
+	),
 ) -> GraphBatch:
 	"""Build a Neo4j-friendly graph batch.
 
@@ -84,7 +93,18 @@ def build_graph_batch(
 		props: dict[str, Any] = {}
 		for key in include:
 			if key in event and event[key] is not None:
-				props[key] = event[key]
+				value = event[key]
+				if key == "payload":
+					# Neo4j node properties cannot be nested maps; store payload as stable JSON.
+					if isinstance(value, str):
+						props["payload"] = value
+					else:
+						props["payload"] = json.dumps(value, sort_keys=True)
+				elif key == "parent_event_ids":
+					# Keep as a list of strings for schema validation.
+					props["parent_event_ids"] = _coerce_parent_ids(parent_ids=value, idx=0)
+				else:
+					props[key] = value
 
 		# Neo4j Browser caption convention: prefer `name`.
 		if "event_name" in props and "name" not in props:

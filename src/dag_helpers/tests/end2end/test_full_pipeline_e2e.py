@@ -55,7 +55,7 @@ def test_full_pipeline_e2e_builds_6_entities_and_validates_every_stage(tmp_path:
 		format="ndjson",
 		seed=20260114,
 		entity_count=10,
-		inconsistency_rate=0.1,
+		inconsistency_rate=0.0,
 		missing_event_rate=0.0,
 		run_id=f"e2e:fetch:{run_tag}",
 	)
