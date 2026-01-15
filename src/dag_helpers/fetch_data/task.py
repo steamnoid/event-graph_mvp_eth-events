@@ -12,8 +12,8 @@ from .adapter import (
 
 from .canonical_baseline_helper import save_canonical_baseline_artifact as save_events_baseline
 
-from dag_helpers.transform_data.events_to_edges.transformer import build_edges
-from dag_helpers.transform_data.events_to_edges.canonical_baseline_helper import (
+from dag_helpers.transform_data.events_to_graphs.transformer import build_edges
+from dag_helpers.transform_data.events_to_graphs.canonical_baseline_helper import (
 	save_canonical_baseline_artifact as save_edges_baseline,
 )
 

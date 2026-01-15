@@ -27,7 +27,7 @@ def _neo4j_is_reachable() -> bool:
 		return False
 
 
-@pytest.mark.e2e
+@pytest.mark.end2end
 def test_full_pipeline_e2e_builds_6_entities_and_validates_every_stage(tmp_path: Path) -> None:
 	"""End-to-end pipeline test.
 
@@ -42,7 +42,7 @@ def test_full_pipeline_e2e_builds_6_entities_and_validates_every_stage(tmp_path:
 	from dag_helpers.fetch_data.task import fetch_data
 	from dag_helpers.store_data.neo4j.task import store_edges_in_neo4j
 	from dag_helpers.transform_data.enhance_data.task import enhance_data
-	from dag_helpers.transform_data.events_to_edges.task import events_to_edges
+	from dag_helpers.transform_data.events_to_graphs.task import events_to_graphs
 	from dag_helpers.validate_baseline.task import validate_canonical_baseline
 
 	run_tag = uuid4().hex
@@ -87,13 +87,14 @@ def test_full_pipeline_e2e_builds_6_entities_and_validates_every_stage(tmp_path:
 	)
 	assert validated_enhanced_events.exists()
 
-	# Stage 3: transform events -> edges + candidate baseline
-	edges_baseline, edges_path = events_to_edges(
-		artifact_dir=tmp_path / "artifacts_edges",
+	# Stage 3: transform events -> graph batch + candidate edges baseline
+	edges_baseline, graph_path = events_to_graphs(
+		artifact_dir=tmp_path / "artifacts_graphs",
 		source_events=enhanced_events_path,
-		out_edges=tmp_path / "edges.json",
+		out_graph=tmp_path / "graph.json",
+		run_id=f"e2e:neo4j:{run_tag}",
 	)
-	assert edges_baseline.exists() and edges_path.exists()
+	assert edges_baseline.exists() and graph_path.exists()
 
 	validated_edges = validate_canonical_baseline(
 		reference_baseline_path=ref_edges_baseline,
@@ -106,7 +107,7 @@ def test_full_pipeline_e2e_builds_6_entities_and_validates_every_stage(tmp_path:
 	# Stage 4: store edges in Neo4j, read back, canonicalize readback + candidate baseline
 	neo4j_baseline, readback_edges_path = store_edges_in_neo4j(
 		artifact_dir=tmp_path / "artifacts_neo4j",
-		source_edges=edges_path,
+		source_graph=graph_path,
 		run_id=f"e2e:neo4j:{run_tag}",
 		clear_run_first=True,
 	)

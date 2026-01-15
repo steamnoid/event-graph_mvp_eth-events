@@ -1,15 +1,19 @@
 from __future__ import annotations
 
+# PATCH_MARKER_VISIBILITY_CHECK
+
 import json
 import os
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Iterable, Sequence
+from typing import Any, Iterable, Mapping, Sequence
 
 from neo4j import GraphDatabase
 
 
 Edge = dict[str, str]
+EventNameById = Mapping[str, str]
+GraphBatch = Mapping[str, Any]
 
 from .canonical_baseline_helper import (
 	save_canonical_baseline_artifact,
@@ -82,6 +86,7 @@ def write_edges_to_neo4j(
 	*,
 	edges: Sequence[Edge],
 	run_id: str,
+	event_names_by_id: EventNameById | None = None,
 	config: Neo4jConfig | None = None,
 	clear_run_first: bool = True,
 	rel_type: str = "CAUSES",
@@ -96,12 +101,34 @@ def write_edges_to_neo4j(
 
 	canonical = transform_edges_to_canonical_baseline_format(edges)
 
+	event_rows: list[dict[str, str]] = []
+	if event_names_by_id:
+		node_ids = {e["from"] for e in canonical} | {e["to"] for e in canonical}
+		for event_id in sorted(node_ids):
+			event_name = event_names_by_id.get(event_id)
+			if not event_name:
+				continue
+			event_rows.append({"event_id": str(event_id), "event_name": str(event_name)})
+
 	driver = GraphDatabase.driver(config.uri, auth=(config.user, config.password))
 	try:
 		with driver.session() as session:
 			_ensure_schema(session=session)
 			if clear_run_first:
 				_clear_run(session=session, run_id=run_id)
+
+			if event_rows:
+				# Populate node display properties (useful for Neo4j Browser captions).
+				session.run(
+					"""
+					UNWIND $events AS ev
+					MERGE (n:Event {run_id: $run_id, event_id: ev.event_id})
+					SET n.event_name = ev.event_name,
+						n.name = ev.event_name
+					""",
+					events=event_rows,
+					run_id=run_id,
+				)
 
 			result = session.run(
 				"""
@@ -113,6 +140,131 @@ def write_edges_to_neo4j(
 				"""
 				% rel_type,
 				edges=canonical,
+				run_id=run_id,
+			)
+			record = result.single()
+			return int(record["rel_count"]) if record and "rel_count" in record else 0
+	finally:
+		driver.close()
+
+
+def write_graph_to_neo4j(
+	*,
+	graph: GraphBatch,
+	run_id: str,
+	config: Neo4jConfig | None = None,
+	clear_run_first: bool = True,
+	node_label: str = "Event",
+	rel_type: str = "CAUSES",
+) -> int:
+	"""Persist a Neo4j-friendly graph batch to Neo4j.
+
+	Expected graph format (minimal):
+	- graph["nodes"]: list[{"event_id": str, "properties": dict}]
+	- graph["relationships"]: list[{"from": str, "to": str, "type": str, "properties": dict}]
+
+	This is optimized for ingestion (UNWIND batches) and keeps the write path
+	deterministic and explicit.
+	"""
+	if config is None:
+		config = neo4j_config_from_env()
+
+	graph_run_id = graph.get("run_id")
+	if graph_run_id is not None and str(graph_run_id) != str(run_id):
+		raise ValueError("graph.run_id does not match run_id argument")
+
+	if node_label != "Event":
+		# We can add label-per-node later if we really need it.
+		raise ValueError("only node_label='Event' is supported")
+
+	nodes_raw = graph.get("nodes")
+	if not isinstance(nodes_raw, list):
+		raise ValueError("graph.nodes must be a list")
+
+	rels_raw = graph.get("relationships")
+	if not isinstance(rels_raw, list):
+		raise ValueError("graph.relationships must be a list")
+
+	node_rows: list[dict[str, Any]] = []
+	event_names_by_id: dict[str, str] = {}
+	for idx, node in enumerate(nodes_raw):
+		if not isinstance(node, dict):
+			raise ValueError(f"node[{idx}] must be a dict")
+		event_id = node.get("event_id")
+		if not event_id:
+			raise ValueError(f"node[{idx}] must contain 'event_id'")
+		props = node.get("properties") or {}
+		if not isinstance(props, dict):
+			raise ValueError(f"node[{idx}].properties must be a dict")
+
+		# Preserve any provided caption properties.
+		name = props.get("event_name") or props.get("name")
+		if name:
+			event_names_by_id[str(event_id)] = str(name)
+
+		node_rows.append({"event_id": str(event_id), "properties": props})
+
+	# Validate and canonicalize edges (for deterministic behavior).
+	edges: list[Edge] = []
+	for idx, rel in enumerate(rels_raw):
+		if not isinstance(rel, dict):
+			raise ValueError(f"relationship[{idx}] must be a dict")
+		if rel.get("type") not in (None, rel_type):
+			raise ValueError(f"relationship[{idx}].type must be '{rel_type}'")
+		if "from" not in rel or "to" not in rel:
+			raise ValueError(f"relationship[{idx}] must contain 'from' and 'to'")
+		edges.append({"from": str(rel["from"]), "to": str(rel["to"])})
+
+	canonical_edges = transform_edges_to_canonical_baseline_format(edges)
+
+	driver = GraphDatabase.driver(config.uri, auth=(config.user, config.password))
+	try:
+		with driver.session() as session:
+			_ensure_schema(session=session)
+			if clear_run_first:
+				_clear_run(session=session, run_id=run_id)
+
+			# Ensure nodes exist and carry properties (including Neo4j Browser caption field).
+			if node_rows:
+				session.run(
+					"""
+					UNWIND $nodes AS n
+					MERGE (e:Event {run_id: $run_id, event_id: n.event_id})
+					SET e += n.properties
+					""",
+					nodes=node_rows,
+					run_id=run_id,
+				)
+
+			# Backfill display fields even if they weren't included in node properties.
+			if event_names_by_id:
+				event_rows = [
+					{"event_id": event_id, "event_name": event_name}
+					for event_id, event_name in sorted(event_names_by_id.items(), key=lambda kv: kv[0])
+				]
+				session.run(
+					"""
+					UNWIND $events AS ev
+					MERGE (n:Event {run_id: $run_id, event_id: ev.event_id})
+					SET n.event_name = coalesce(n.event_name, ev.event_name),
+						n.name = coalesce(n.name, ev.event_name)
+					""",
+					events=event_rows,
+					run_id=run_id,
+				)
+
+			result = session.run(
+				(
+					"""
+					UNWIND $edges AS e
+					MERGE (a:Event {run_id: $run_id, event_id: e.from})
+					MERGE (b:Event {run_id: $run_id, event_id: e.to})
+					MERGE (a)-[r:%s {run_id: $run_id}]->(b)
+					RETURN count(r) AS rel_count
+					"""
+					% rel_type
+				),
+				edges=canonical_edges,
 				run_id=run_id,
 			)
 			record = result.single()

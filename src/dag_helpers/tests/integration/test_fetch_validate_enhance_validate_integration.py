@@ -9,7 +9,7 @@ import pytest
 def test_fetch_validate_enhance_validate_pipeline(tmp_path: Path) -> None:
 	from dag_helpers.fetch_data.task import fetch_data
 	from dag_helpers.transform_data.enhance_data.task import enhance_data
-	from dag_helpers.transform_data.events_to_edges.task import events_to_edges
+	from dag_helpers.transform_data.events_to_graphs.task import events_to_graphs
 	from dag_helpers.validate_baseline.task import validate_canonical_baseline
 
 	# Stage 1: fetch/generate data + baselines
@@ -60,16 +60,17 @@ def test_fetch_validate_enhance_validate_pipeline(tmp_path: Path) -> None:
 	)
 	assert validated_c2.exists()
 
-	# Stage 3: transform events -> edges + baselines
-	edges_artifacts_dir = tmp_path / "artifacts_edges"
-	edges_path = tmp_path / "edges.json"
+	# Stage 3: transform events -> graph batch + edges baselines
+	graphs_artifacts_dir = tmp_path / "artifacts_graphs"
+	graph_path = tmp_path / "graph.json"
 
-	edges_baseline, out_edges = events_to_edges(
-		artifact_dir=edges_artifacts_dir,
+	edges_baseline, out_graph = events_to_graphs(
+		artifact_dir=graphs_artifacts_dir,
 		source_events=enhanced_events_path,
-		out_edges=edges_path,
+		out_graph=graph_path,
+		run_id="integration:graphs",
 	)
-	assert edges_baseline.exists() and out_edges.exists()
+	assert edges_baseline.exists() and out_graph.exists()
 
 	# Stage 3 validation (candidate vs fetch reference)
 	validated_c3 = validate_canonical_baseline(

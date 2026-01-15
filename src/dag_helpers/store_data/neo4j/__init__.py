@@ -1,29 +1,15 @@
-"""Store stage: persist graph artifacts to Neo4j and read them back."""
+"""Neo4j store stage package.
 
-from .task import store_edges_in_neo4j  # noqa: F401
-from .canonical_baseline_helper import (  # noqa: F401
-	save_canonical_baseline_artifact,
-	transform_edges_to_canonical_baseline_format,
-)
-from .adapter import (  # noqa: F401
-	Edge,
-	Neo4jConfig,
-	canonical_edges_baseline_from_neo4j,
-	canonical_edges_baseline_from_file,
-	read_edges_from_file,
-	write_edges_to_file,
-	write_edges_to_neo4j,
-)
+Keep this module intentionally lightweight.
 
-__all__ = [
-	"Edge",
-	"Neo4jConfig",
-	"read_edges_from_file",
-	"write_edges_to_file",
-	"transform_edges_to_canonical_baseline_format",
-	"save_canonical_baseline_artifact",
-	"write_edges_to_neo4j",
-	"canonical_edges_baseline_from_neo4j",
-	"canonical_edges_baseline_from_file",
-	"store_edges_in_neo4j",
-]
+Why: importing submodules like `dag_helpers.store_data.neo4j.adapter` causes Python
+to execute this package `__init__` first. Eager re-exports can create fragile
+import-time coupling and surprising circular import errors.
+
+Import what you need directly from:
+- `dag_helpers.store_data.neo4j.task`
+- `dag_helpers.store_data.neo4j.adapter`
+- `dag_helpers.store_data.neo4j.canonical_baseline_helper`
+"""
+
+__all__: list[str] = []

@@ -1,0 +1,938 @@
+[
+  {
+    "emitted_at": "2026-01-01T19:11:16+00:00",
+    "entity_id": "enrollment-1",
+    "event_id": "enrollment-1:CourseEnrollmentRequested",
+    "event_kind": "fact",
+    "event_type": "CourseEnrollmentRequested",
+    "layer": "L0",
+    "parent_event_ids": [],
+    "payload": {}
+  },
+  {
+    "emitted_at": "2026-01-01T19:11:22+00:00",
+    "entity_id": "enrollment-1",
+    "event_id": "enrollment-1:PaymentProcessingRequested",
+    "event_kind": "fact",
+    "event_type": "PaymentProcessingRequested",
+    "layer": "L1",
+    "parent_event_ids": [
+      "enrollment-1:CourseEnrollmentRequested"
+    ],
+    "payload": {}
+  },
+  {
+    "emitted_at": "2026-01-01T19:11:21+00:00",
+    "entity_id": "enrollment-1",
+    "event_id": "enrollment-1:PaymentConfirmed",
+    "event_kind": "fact",
+    "event_type": "PaymentConfirmed",
+    "layer": "L2",
+    "parent_event_ids": [
+      "enrollment-1:PaymentProcessingRequested"
+    ],
+    "payload": {}
+  },
+  {
+    "emitted_at": "2026-01-01T19:11:15+00:00",
+    "entity_id": "enrollment-1",
+    "event_id": "enrollment-1:CourseAccessRequested",
+    "event_kind": "fact",
+    "event_type": "CourseAccessRequested",
+    "layer": "L3",
+    "parent_event_ids": [
+      "enrollment-1:PaymentConfirmed"
+    ],
+    "payload": {}
+  },
+  {
+    "emitted_at": "2026-01-01T19:11:23+00:00",
+    "entity_id": "enrollment-1",
+    "event_id": "enrollment-1:UserProfileLoaded",
+    "event_kind": "fact",
+    "event_type": "UserProfileLoaded",
+    "layer": "L3",
+    "parent_event_ids": [
+      "enrollment-1:PaymentConfirmed"
+    ],
+    "payload": {}
+  },
+  {
+    "emitted_at": "2026-01-01T19:11:12+00:00",
+    "entity_id": "enrollment-1",
+    "event_id": "enrollment-1:ContentAvailabilityChecked",
+    "event_kind": "fact",
+    "event_type": "ContentAvailabilityChecked",
+    "layer": "L4",
+    "parent_event_ids": [
+      "enrollment-1:CourseAccessRequested"
+    ],
+    "payload": {}
+  },
+  {
+    "emitted_at": "2026-01-01T19:11:17+00:00",
+    "entity_id": "enrollment-1",
+    "event_id": "enrollment-1:EligibilityChecked",
+    "event_kind": "fact",
+    "event_type": "EligibilityChecked",
+    "layer": "L4",
+    "parent_event_ids": [
+      "enrollment-1:UserProfileLoaded"
+    ],
+    "payload": {}
+  },
+  {
+    "emitted_at": "2026-01-01T19:11:13+00:00",
+    "entity_id": "enrollment-1",
+    "event_id": "enrollment-1:ContentAvailable",
+    "event_kind": "fact",
+    "event_type": "ContentAvailable",
+    "layer": "L5",
+    "parent_event_ids": [
+      "enrollment-1:ContentAvailabilityChecked"
+    ],
+    "payload": {}
+  },
+  {
+    "emitted_at": "2026-01-01T19:11:18+00:00",
+    "entity_id": "enrollment-1",
+    "event_id": "enrollment-1:EligibilityPassed",
+    "event_kind": "fact",
+    "event_type": "EligibilityPassed",
+    "layer": "L5",
+    "parent_event_ids": [
+      "enrollment-1:EligibilityChecked"
+    ],
+    "payload": {}
+  },
+  {
+    "emitted_at": "2026-01-01T19:11:11+00:00",
+    "entity_id": "enrollment-1",
+    "event_id": "enrollment-1:AccessGranted",
+    "event_kind": "decision",
+    "event_type": "AccessGranted",
+    "layer": "L6",
+    "parent_event_ids": [
+      "enrollment-1:ContentPrepared",
+      "enrollment-1:EligibilityPassed",
+      "enrollment-1:PaymentConfirmed"
+    ],
+    "payload": {}
+  },
+  {
+    "emitted_at": "2026-01-01T19:11:14+00:00",
+    "entity_id": "enrollment-1",
+    "event_id": "enrollment-1:ContentPrepared",
+    "event_kind": "fact",
+    "event_type": "ContentPrepared",
+    "layer": "L6",
+    "parent_event_ids": [
+      "enrollment-1:ContentAvailable"
+    ],
+    "payload": {}
+  },
+  {
+    "emitted_at": "2026-01-01T19:11:20+00:00",
+    "entity_id": "enrollment-1",
+    "event_id": "enrollment-1:EnrollmentCompleted",
+    "event_kind": "decision",
+    "event_type": "EnrollmentCompleted",
+    "layer": "L7",
+    "parent_event_ids": [
+      "enrollment-1:AccessGranted"
+    ],
+    "payload": {}
+  },
+  {
+    "emitted_at": "2026-01-01T19:11:19+00:00",
+    "entity_id": "enrollment-1",
+    "event_id": "enrollment-1:EnrollmentArchived",
+    "event_kind": "fact",
+    "event_type": "EnrollmentArchived",
+    "layer": "L8",
+    "parent_event_ids": [
+      "enrollment-1:EnrollmentCompleted"
+    ],
+    "payload": {}
+  },
+  {
+    "emitted_at": "2026-01-01T19:12:16+00:00",
+    "entity_id": "enrollment-2",
+    "event_id": "enrollment-2:CourseEnrollmentRequested",
+    "event_kind": "fact",
+    "event_type": "CourseEnrollmentRequested",
+    "layer": "L0",
+    "parent_event_ids": [],
+    "payload": {}
+  },
+  {
+    "emitted_at": "2026-01-01T19:12:22+00:00",
+    "entity_id": "enrollment-2",
+    "event_id": "enrollment-2:PaymentProcessingRequested",
+    "event_kind": "fact",
+    "event_type": "PaymentProcessingRequested",
+    "layer": "L1",
+    "parent_event_ids": [
+      "enrollment-2:CourseEnrollmentRequested"
+    ],
+    "payload": {}
+  },
+  {
+    "emitted_at": "2026-01-01T19:12:21+00:00",
+    "entity_id": "enrollment-2",
+    "event_id": "enrollment-2:PaymentConfirmed",
+    "event_kind": "fact",
+    "event_type": "PaymentConfirmed",
+    "layer": "L2",
+    "parent_event_ids": [
+      "enrollment-2:PaymentProcessingRequested"
+    ],
+    "payload": {}
+  },
+  {
+    "emitted_at": "2026-01-01T19:12:15+00:00",
+    "entity_id": "enrollment-2",
+    "event_id": "enrollment-2:CourseAccessRequested",
+    "event_kind": "fact",
+    "event_type": "CourseAccessRequested",
+    "layer": "L3",
+    "parent_event_ids": [
+      "enrollment-2:PaymentConfirmed"
+    ],
+    "payload": {}
+  },
+  {
+    "emitted_at": "2026-01-01T19:12:23+00:00",
+    "entity_id": "enrollment-2",
+    "event_id": "enrollment-2:UserProfileLoaded",
+    "event_kind": "fact",
+    "event_type": "UserProfileLoaded",
+    "layer": "L3",
+    "parent_event_ids": [
+      "enrollment-2:PaymentConfirmed"
+    ],
+    "payload": {}
+  },
+  {
+    "emitted_at": "2026-01-01T19:12:12+00:00",
+    "entity_id": "enrollment-2",
+    "event_id": "enrollment-2:ContentAvailabilityChecked",
+    "event_kind": "fact",
+    "event_type": "ContentAvailabilityChecked",
+    "layer": "L4",
+    "parent_event_ids": [
+      "enrollment-2:CourseAccessRequested"
+    ],
+    "payload": {}
+  },
+  {
+    "emitted_at": "2026-01-01T19:12:17+00:00",
+    "entity_id": "enrollment-2",
+    "event_id": "enrollment-2:EligibilityChecked",
+    "event_kind": "fact",
+    "event_type": "EligibilityChecked",
+    "layer": "L4",
+    "parent_event_ids": [
+      "enrollment-2:UserProfileLoaded"
+    ],
+    "payload": {}
+  },
+  {
+    "emitted_at": "2026-01-01T19:12:13+00:00",
+    "entity_id": "enrollment-2",
+    "event_id": "enrollment-2:ContentAvailable",
+    "event_kind": "fact",
+    "event_type": "ContentAvailable",
+    "layer": "L5",
+    "parent_event_ids": [
+      "enrollment-2:ContentAvailabilityChecked"
+    ],
+    "payload": {}
+  },
+  {
+    "emitted_at": "2026-01-01T19:12:18+00:00",
+    "entity_id": "enrollment-2",
+    "event_id": "enrollment-2:EligibilityPassed",
+    "event_kind": "fact",
+    "event_type": "EligibilityPassed",
+    "layer": "L5",
+    "parent_event_ids": [
+      "enrollment-2:EligibilityChecked"
+    ],
+    "payload": {}
+  },
+  {
+    "emitted_at": "2026-01-01T19:12:11+00:00",
+    "entity_id": "enrollment-2",
+    "event_id": "enrollment-2:AccessGranted",
+    "event_kind": "decision",
+    "event_type": "AccessGranted",
+    "layer": "L6",
+    "parent_event_ids": [
+      "enrollment-2:ContentPrepared",
+      "enrollment-2:EligibilityPassed",
+      "enrollment-2:PaymentConfirmed"
+    ],
+    "payload": {}
+  },
+  {
+    "emitted_at": "2026-01-01T19:12:14+00:00",
+    "entity_id": "enrollment-2",
+    "event_id": "enrollment-2:ContentPrepared",
+    "event_kind": "fact",
+    "event_type": "ContentPrepared",
+    "layer": "L6",
+    "parent_event_ids": [
+      "enrollment-2:ContentAvailable"
+    ],
+    "payload": {}
+  },
+  {
+    "emitted_at": "2026-01-01T19:12:20+00:00",
+    "entity_id": "enrollment-2",
+    "event_id": "enrollment-2:EnrollmentCompleted",
+    "event_kind": "decision",
+    "event_type": "EnrollmentCompleted",
+    "layer": "L7",
+    "parent_event_ids": [
+      "enrollment-2:AccessGranted"
+    ],
+    "payload": {}
+  },
+  {
+    "emitted_at": "2026-01-01T19:12:19+00:00",
+    "entity_id": "enrollment-2",
+    "event_id": "enrollment-2:EnrollmentArchived",
+    "event_kind": "fact",
+    "event_type": "EnrollmentArchived",
+    "layer": "L8",
+    "parent_event_ids": [
+      "enrollment-2:EnrollmentCompleted"
+    ],
+    "payload": {}
+  },
+  {
+    "emitted_at": "2026-01-01T19:13:16+00:00",
+    "entity_id": "enrollment-3",
+    "event_id": "enrollment-3:CourseEnrollmentRequested",
+    "event_kind": "fact",
+    "event_type": "CourseEnrollmentRequested",
+    "layer": "L0",
+    "parent_event_ids": [],
+    "payload": {}
+  },
+  {
+    "emitted_at": "2026-01-01T19:13:22+00:00",
+    "entity_id": "enrollment-3",
+    "event_id": "enrollment-3:PaymentProcessingRequested",
+    "event_kind": "fact",
+    "event_type": "PaymentProcessingRequested",
+    "layer": "L1",
+    "parent_event_ids": [
+      "enrollment-3:CourseEnrollmentRequested"
+    ],
+    "payload": {}
+  },
+  {
+    "emitted_at": "2026-01-01T19:13:21+00:00",
+    "entity_id": "enrollment-3",
+    "event_id": "enrollment-3:PaymentConfirmed",
+    "event_kind": "fact",
+    "event_type": "PaymentConfirmed",
+    "layer": "L2",
+    "parent_event_ids": [
+      "enrollment-3:PaymentProcessingRequested"
+    ],
+    "payload": {}
+  },
+  {
+    "emitted_at": "2026-01-01T19:13:15+00:00",
+    "entity_id": "enrollment-3",
+    "event_id": "enrollment-3:CourseAccessRequested",
+    "event_kind": "fact",
+    "event_type": "CourseAccessRequested",
+    "layer": "L3",
+    "parent_event_ids": [
+      "enrollment-3:PaymentConfirmed"
+    ],
+    "payload": {}
+  },
+  {
+    "emitted_at": "2026-01-01T19:13:23+00:00",
+    "entity_id": "enrollment-3",
+    "event_id": "enrollment-3:UserProfileLoaded",
+    "event_kind": "fact",
+    "event_type": "UserProfileLoaded",
+    "layer": "L3",
+    "parent_event_ids": [
+      "enrollment-3:PaymentConfirmed"
+    ],
+    "payload": {}
+  },
+  {
+    "emitted_at": "2026-01-01T19:13:12+00:00",
+    "entity_id": "enrollment-3",
+    "event_id": "enrollment-3:ContentAvailabilityChecked",
+    "event_kind": "fact",
+    "event_type": "ContentAvailabilityChecked",
+    "layer": "L4",
+    "parent_event_ids": [
+      "enrollment-3:CourseAccessRequested"
+    ],
+    "payload": {}
+  },
+  {
+    "emitted_at": "2026-01-01T19:13:17+00:00",
+    "entity_id": "enrollment-3",
+    "event_id": "enrollment-3:EligibilityChecked",
+    "event_kind": "fact",
+    "event_type": "EligibilityChecked",
+    "layer": "L4",
+    "parent_event_ids": [
+      "enrollment-3:UserProfileLoaded"
+    ],
+    "payload": {}
+  },
+  {
+    "emitted_at": "2026-01-01T19:13:13+00:00",
+    "entity_id": "enrollment-3",
+    "event_id": "enrollment-3:ContentAvailable",
+    "event_kind": "fact",
+    "event_type": "ContentAvailable",
+    "layer": "L5",
+    "parent_event_ids": [
+      "enrollment-3:ContentAvailabilityChecked"
+    ],
+    "payload": {}
+  },
+  {
+    "emitted_at": "2026-01-01T19:13:18+00:00",
+    "entity_id": "enrollment-3",
+    "event_id": "enrollment-3:EligibilityPassed",
+    "event_kind": "fact",
+    "event_type": "EligibilityPassed",
+    "layer": "L5",
+    "parent_event_ids": [
+      "enrollment-3:EligibilityChecked"
+    ],
+    "payload": {}
+  },
+  {
+    "emitted_at": "2026-01-01T19:13:11+00:00",
+    "entity_id": "enrollment-3",
+    "event_id": "enrollment-3:AccessGranted",
+    "event_kind": "decision",
+    "event_type": "AccessGranted",
+    "layer": "L6",
+    "parent_event_ids": [
+      "enrollment-3:ContentPrepared",
+      "enrollment-3:EligibilityPassed",
+      "enrollment-3:PaymentConfirmed"
+    ],
+    "payload": {}
+  },
+  {
+    "emitted_at": "2026-01-01T19:13:14+00:00",
+    "entity_id": "enrollment-3",
+    "event_id": "enrollment-3:ContentPrepared",
+    "event_kind": "fact",
+    "event_type": "ContentPrepared",
+    "layer": "L6",
+    "parent_event_ids": [
+      "enrollment-3:ContentAvailable"
+    ],
+    "payload": {}
+  },
+  {
+    "emitted_at": "2026-01-01T19:13:20+00:00",
+    "entity_id": "enrollment-3",
+    "event_id": "enrollment-3:EnrollmentCompleted",
+    "event_kind": "decision",
+    "event_type": "EnrollmentCompleted",
+    "layer": "L7",
+    "parent_event_ids": [
+      "enrollment-3:AccessGranted"
+    ],
+    "payload": {}
+  },
+  {
+    "emitted_at": "2026-01-01T19:13:19+00:00",
+    "entity_id": "enrollment-3",
+    "event_id": "enrollment-3:EnrollmentArchived",
+    "event_kind": "fact",
+    "event_type": "EnrollmentArchived",
+    "layer": "L8",
+    "parent_event_ids": [
+      "enrollment-3:EnrollmentCompleted"
+    ],
+    "payload": {}
+  },
+  {
+    "emitted_at": "2026-01-01T19:14:16+00:00",
+    "entity_id": "enrollment-4",
+    "event_id": "enrollment-4:CourseEnrollmentRequested",
+    "event_kind": "fact",
+    "event_type": "CourseEnrollmentRequested",
+    "layer": "L0",
+    "parent_event_ids": [],
+    "payload": {}
+  },
+  {
+    "emitted_at": "2026-01-01T19:14:22+00:00",
+    "entity_id": "enrollment-4",
+    "event_id": "enrollment-4:PaymentProcessingRequested",
+    "event_kind": "fact",
+    "event_type": "PaymentProcessingRequested",
+    "layer": "L1",
+    "parent_event_ids": [
+      "enrollment-4:CourseEnrollmentRequested"
+    ],
+    "payload": {}
+  },
+  {
+    "emitted_at": "2026-01-01T19:14:21+00:00",
+    "entity_id": "enrollment-4",
+    "event_id": "enrollment-4:PaymentConfirmed",
+    "event_kind": "fact",
+    "event_type": "PaymentConfirmed",
+    "layer": "L2",
+    "parent_event_ids": [
+      "enrollment-4:PaymentProcessingRequested"
+    ],
+    "payload": {}
+  },
+  {
+    "emitted_at": "2026-01-01T19:14:15+00:00",
+    "entity_id": "enrollment-4",
+    "event_id": "enrollment-4:CourseAccessRequested",
+    "event_kind": "fact",
+    "event_type": "CourseAccessRequested",
+    "layer": "L3",
+    "parent_event_ids": [
+      "enrollment-4:PaymentConfirmed"
+    ],
+    "payload": {}
+  },
+  {
+    "emitted_at": "2026-01-01T19:14:23+00:00",
+    "entity_id": "enrollment-4",
+    "event_id": "enrollment-4:UserProfileLoaded",
+    "event_kind": "fact",
+    "event_type": "UserProfileLoaded",
+    "layer": "L3",
+    "parent_event_ids": [
+      "enrollment-4:PaymentConfirmed"
+    ],
+    "payload": {}
+  },
+  {
+    "emitted_at": "2026-01-01T19:14:12+00:00",
+    "entity_id": "enrollment-4",
+    "event_id": "enrollment-4:ContentAvailabilityChecked",
+    "event_kind": "fact",
+    "event_type": "ContentAvailabilityChecked",
+    "layer": "L4",
+    "parent_event_ids": [
+      "enrollment-4:CourseAccessRequested"
+    ],
+    "payload": {}
+  },
+  {
+    "emitted_at": "2026-01-01T19:14:17+00:00",
+    "entity_id": "enrollment-4",
+    "event_id": "enrollment-4:EligibilityChecked",
+    "event_kind": "fact",
+    "event_type": "EligibilityChecked",
+    "layer": "L4",
+    "parent_event_ids": [
+      "enrollment-4:UserProfileLoaded"
+    ],
+    "payload": {}
+  },
+  {
+    "emitted_at": "2026-01-01T19:14:13+00:00",
+    "entity_id": "enrollment-4",
+    "event_id": "enrollment-4:ContentAvailable",
+    "event_kind": "fact",
+    "event_type": "ContentAvailable",
+    "layer": "L5",
+    "parent_event_ids": [
+      "enrollment-4:ContentAvailabilityChecked"
+    ],
+    "payload": {}
+  },
+  {
+    "emitted_at": "2026-01-01T19:14:18+00:00",
+    "entity_id": "enrollment-4",
+    "event_id": "enrollment-4:EligibilityPassed",
+    "event_kind": "fact",
+    "event_type": "EligibilityPassed",
+    "layer": "L5",
+    "parent_event_ids": [
+      "enrollment-4:EligibilityChecked"
+    ],
+    "payload": {}
+  },
+  {
+    "emitted_at": "2026-01-01T19:14:11+00:00",
+    "entity_id": "enrollment-4",
+    "event_id": "enrollment-4:AccessGranted",
+    "event_kind": "decision",
+    "event_type": "AccessGranted",
+    "layer": "L6",
+    "parent_event_ids": [
+      "enrollment-4:ContentPrepared",
+      "enrollment-4:EligibilityPassed",
+      "enrollment-4:PaymentConfirmed"
+    ],
+    "payload": {}
+  },
+  {
+    "emitted_at": "2026-01-01T19:14:14+00:00",
+    "entity_id": "enrollment-4",
+    "event_id": "enrollment-4:ContentPrepared",
+    "event_kind": "fact",
+    "event_type": "ContentPrepared",
+    "layer": "L6",
+    "parent_event_ids": [
+      "enrollment-4:ContentAvailable"
+    ],
+    "payload": {}
+  },
+  {
+    "emitted_at": "2026-01-01T19:14:20+00:00",
+    "entity_id": "enrollment-4",
+    "event_id": "enrollment-4:EnrollmentCompleted",
+    "event_kind": "decision",
+    "event_type": "EnrollmentCompleted",
+    "layer": "L7",
+    "parent_event_ids": [
+      "enrollment-4:AccessGranted"
+    ],
+    "payload": {}
+  },
+  {
+    "emitted_at": "2026-01-01T19:14:19+00:00",
+    "entity_id": "enrollment-4",
+    "event_id": "enrollment-4:EnrollmentArchived",
+    "event_kind": "fact",
+    "event_type": "EnrollmentArchived",
+    "layer": "L8",
+    "parent_event_ids": [
+      "enrollment-4:EnrollmentCompleted"
+    ],
+    "payload": {}
+  },
+  {
+    "emitted_at": "2026-01-01T19:15:16+00:00",
+    "entity_id": "enrollment-5",
+    "event_id": "enrollment-5:CourseEnrollmentRequested",
+    "event_kind": "fact",
+    "event_type": "CourseEnrollmentRequested",
+    "layer": "L0",
+    "parent_event_ids": [],
+    "payload": {}
+  },
+  {
+    "emitted_at": "2026-01-01T19:15:22+00:00",
+    "entity_id": "enrollment-5",
+    "event_id": "enrollment-5:PaymentProcessingRequested",
+    "event_kind": "fact",
+    "event_type": "PaymentProcessingRequested",
+    "layer": "L1",
+    "parent_event_ids": [
+      "enrollment-5:CourseEnrollmentRequested"
+    ],
+    "payload": {}
+  },
+  {
+    "emitted_at": "2026-01-01T19:15:21+00:00",
+    "entity_id": "enrollment-5",
+    "event_id": "enrollment-5:PaymentConfirmed",
+    "event_kind": "fact",
+    "event_type": "PaymentConfirmed",
+    "layer": "L2",
+    "parent_event_ids": [
+      "enrollment-5:PaymentProcessingRequested"
+    ],
+    "payload": {}
+  },
+  {
+    "emitted_at": "2026-01-01T19:15:15+00:00",
+    "entity_id": "enrollment-5",
+    "event_id": "enrollment-5:CourseAccessRequested",
+    "event_kind": "fact",
+    "event_type": "CourseAccessRequested",
+    "layer": "L3",
+    "parent_event_ids": [
+      "enrollment-5:PaymentConfirmed"
+    ],
+    "payload": {}
+  },
+  {
+    "emitted_at": "2026-01-01T19:15:23+00:00",
+    "entity_id": "enrollment-5",
+    "event_id": "enrollment-5:UserProfileLoaded",
+    "event_kind": "fact",
+    "event_type": "UserProfileLoaded",
+    "layer": "L3",
+    "parent_event_ids": [
+      "enrollment-5:PaymentConfirmed"
+    ],
+    "payload": {}
+  },
+  {
+    "emitted_at": "2026-01-01T19:15:12+00:00",
+    "entity_id": "enrollment-5",
+    "event_id": "enrollment-5:ContentAvailabilityChecked",
+    "event_kind": "fact",
+    "event_type": "ContentAvailabilityChecked",
+    "layer": "L4",
+    "parent_event_ids": [
+      "enrollment-5:CourseAccessRequested"
+    ],
+    "payload": {}
+  },
+  {
+    "emitted_at": "2026-01-01T19:15:17+00:00",
+    "entity_id": "enrollment-5",
+    "event_id": "enrollment-5:EligibilityChecked",
+    "event_kind": "fact",
+    "event_type": "EligibilityChecked",
+    "layer": "L4",
+    "parent_event_ids": [
+      "enrollment-5:UserProfileLoaded"
+    ],
+    "payload": {}
+  },
+  {
+    "emitted_at": "2026-01-01T19:15:13+00:00",
+    "entity_id": "enrollment-5",
+    "event_id": "enrollment-5:ContentAvailable",
+    "event_kind": "fact",
+    "event_type": "ContentAvailable",
+    "layer": "L5",
+    "parent_event_ids": [
+      "enrollment-5:ContentAvailabilityChecked"
+    ],
+    "payload": {}
+  },
+  {
+    "emitted_at": "2026-01-01T19:15:18+00:00",
+    "entity_id": "enrollment-5",
+    "event_id": "enrollment-5:EligibilityPassed",
+    "event_kind": "fact",
+    "event_type": "EligibilityPassed",
+    "layer": "L5",
+    "parent_event_ids": [
+      "enrollment-5:EligibilityChecked"
+    ],
+    "payload": {}
+  },
+  {
+    "emitted_at": "2026-01-01T19:15:11+00:00",
+    "entity_id": "enrollment-5",
+    "event_id": "enrollment-5:AccessGranted",
+    "event_kind": "decision",
+    "event_type": "AccessGranted",
+    "layer": "L6",
+    "parent_event_ids": [
+      "enrollment-5:ContentPrepared",
+      "enrollment-5:EligibilityPassed",
+      "enrollment-5:PaymentConfirmed"
+    ],
+    "payload": {}
+  },
+  {
+    "emitted_at": "2026-01-01T19:15:14+00:00",
+    "entity_id": "enrollment-5",
+    "event_id": "enrollment-5:ContentPrepared",
+    "event_kind": "fact",
+    "event_type": "ContentPrepared",
+    "layer": "L6",
+    "parent_event_ids": [
+      "enrollment-5:ContentAvailable"
+    ],
+    "payload": {}
+  },
+  {
+    "emitted_at": "2026-01-01T19:15:20+00:00",
+    "entity_id": "enrollment-5",
+    "event_id": "enrollment-5:EnrollmentCompleted",
+    "event_kind": "decision",
+    "event_type": "EnrollmentCompleted",
+    "layer": "L7",
+    "parent_event_ids": [
+      "enrollment-5:AccessGranted"
+    ],
+    "payload": {}
+  },
+  {
+    "emitted_at": "2026-01-01T19:15:19+00:00",
+    "entity_id": "enrollment-5",
+    "event_id": "enrollment-5:EnrollmentArchived",
+    "event_kind": "fact",
+    "event_type": "EnrollmentArchived",
+    "layer": "L8",
+    "parent_event_ids": [
+      "enrollment-5:EnrollmentCompleted"
+    ],
+    "payload": {}
+  },
+  {
+    "emitted_at": "2026-01-01T19:16:16+00:00",
+    "entity_id": "enrollment-6",
+    "event_id": "enrollment-6:CourseEnrollmentRequested",
+    "event_kind": "fact",
+    "event_type": "CourseEnrollmentRequested",
+    "layer": "L0",
+    "parent_event_ids": [],
+    "payload": {}
+  },
+  {
+    "emitted_at": "2026-01-01T19:16:22+00:00",
+    "entity_id": "enrollment-6",
+    "event_id": "enrollment-6:PaymentProcessingRequested",
+    "event_kind": "fact",
+    "event_type": "PaymentProcessingRequested",
+    "layer": "L1",
+    "parent_event_ids": [
+      "enrollment-6:CourseEnrollmentRequested"
+    ],
+    "payload": {}
+  },
+  {
+    "emitted_at": "2026-01-01T19:16:21+00:00",
+    "entity_id": "enrollment-6",
+    "event_id": "enrollment-6:PaymentConfirmed",
+    "event_kind": "fact",
+    "event_type": "PaymentConfirmed",
+    "layer": "L2",
+    "parent_event_ids": [
+      "enrollment-6:PaymentProcessingRequested"
+    ],
+    "payload": {}
+  },
+  {
+    "emitted_at": "2026-01-01T19:16:15+00:00",
+    "entity_id": "enrollment-6",
+    "event_id": "enrollment-6:CourseAccessRequested",
+    "event_kind": "fact",
+    "event_type": "CourseAccessRequested",
+    "layer": "L3",
+    "parent_event_ids": [
+      "enrollment-6:PaymentConfirmed"
+    ],
+    "payload": {}
+  },
+  {
+    "emitted_at": "2026-01-01T19:16:23+00:00",
+    "entity_id": "enrollment-6",
+    "event_id": "enrollment-6:UserProfileLoaded",
+    "event_kind": "fact",
+    "event_type": "UserProfileLoaded",
+    "layer": "L3",
+    "parent_event_ids": [
+      "enrollment-6:PaymentConfirmed"
+    ],
+    "payload": {}
+  },
+  {
+    "emitted_at": "2026-01-01T19:16:12+00:00",
+    "entity_id": "enrollment-6",
+    "event_id": "enrollment-6:ContentAvailabilityChecked",
+    "event_kind": "fact",
+    "event_type": "ContentAvailabilityChecked",
+    "layer": "L4",
+    "parent_event_ids": [
+      "enrollment-6:CourseAccessRequested"
+    ],
+    "payload": {}
+  },
+  {
+    "emitted_at": "2026-01-01T19:16:17+00:00",
+    "entity_id": "enrollment-6",
+    "event_id": "enrollment-6:EligibilityChecked",
+    "event_kind": "fact",
+    "event_type": "EligibilityChecked",
+    "layer": "L4",
+    "parent_event_ids": [
+      "enrollment-6:UserProfileLoaded"
+    ],
+    "payload": {}
+  },
+  {
+    "emitted_at": "2026-01-01T19:16:13+00:00",
+    "entity_id": "enrollment-6",
+    "event_id": "enrollment-6:ContentAvailable",
+    "event_kind": "fact",
+    "event_type": "ContentAvailable",
+    "layer": "L5",
+    "parent_event_ids": [
+      "enrollment-6:ContentAvailabilityChecked"
+    ],
+    "payload": {}
+  },
+  {
+    "emitted_at": "2026-01-01T19:16:18+00:00",
+    "entity_id": "enrollment-6",
+    "event_id": "enrollment-6:EligibilityPassed",
+    "event_kind": "fact",
+    "event_type": "EligibilityPassed",
+    "layer": "L5",
+    "parent_event_ids": [
+      "enrollment-6:EligibilityChecked"
+    ],
+    "payload": {}
+  },
+  {
+    "emitted_at": "2026-01-01T19:16:11+00:00",
+    "entity_id": "enrollment-6",
+    "event_id": "enrollment-6:AccessGranted",
+    "event_kind": "decision",
+    "event_type": "AccessGranted",
+    "layer": "L6",
+    "parent_event_ids": [
+      "enrollment-6:ContentPrepared",
+      "enrollment-6:EligibilityPassed",
+      "enrollment-6:PaymentConfirmed"
+    ],
+    "payload": {}
+  },
+  {
+    "emitted_at": "2026-01-01T19:16:14+00:00",
+    "entity_id": "enrollment-6",
+    "event_id": "enrollment-6:ContentPrepared",
+    "event_kind": "fact",
+    "event_type": "ContentPrepared",
+    "layer": "L6",
+    "parent_event_ids": [
+      "enrollment-6:ContentAvailable"
+    ],
+    "payload": {}
+  },
+  {
+    "emitted_at": "2026-01-01T19:16:20+00:00",
+    "entity_id": "enrollment-6",
+    "event_id": "enrollment-6:EnrollmentCompleted",
+    "event_kind": "decision",
+    "event_type": "EnrollmentCompleted",
+    "layer": "L7",
+    "parent_event_ids": [
+      "enrollment-6:AccessGranted"
+    ],
+    "payload": {}
+  },
+  {
+    "emitted_at": "2026-01-01T19:16:19+00:00",
+    "entity_id": "enrollment-6",
+    "event_id": "enrollment-6:EnrollmentArchived",
+    "event_kind": "fact",
+    "event_type": "EnrollmentArchived",
+    "layer": "L8",
+    "parent_event_ids": [
+      "enrollment-6:EnrollmentCompleted"
+    ],
+    "payload": {}
+  }
+]
