@@ -27,4 +27,7 @@ def test_task_events_to_graphs_emits_edges_baseline_and_graph_file(tmp_path: Pat
 
 	assert baseline.exists()
 	assert graph_path.exists()
-	assert graph_path.read_text(encoding="utf-8").lstrip().startswith("{")
+	text = graph_path.read_text(encoding="utf-8")
+	assert text.lstrip().startswith("{")
+	graph = json.loads(text)
+	assert graph["run_id"] == "r1"

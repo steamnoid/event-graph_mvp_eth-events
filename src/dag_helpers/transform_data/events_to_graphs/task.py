@@ -28,7 +28,12 @@ def events_to_graphs(
 	artifact_dir.mkdir(parents=True, exist_ok=True)
 
 	events = read_events_from_file(source_events)
-	graph = build_graph_batch(events=events, run_id=run_id, node_label=node_label, rel_type=rel_type)
+	graph = build_graph_batch(
+		events=events,
+		run_id=run_id,
+		node_label=node_label,
+		rel_type=rel_type,
+	)
 	out_graph_path = write_graph_to_file(graph=graph, path=out_graph)
 
 	edges = edges_from_graph(graph)

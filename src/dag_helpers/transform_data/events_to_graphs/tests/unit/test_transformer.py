@@ -55,3 +55,32 @@ def test_event_names_by_id_from_graph_extracts_names() -> None:
 	graph = build_graph_batch(events=events, run_id="r1")
 	names = event_names_by_id_from_graph(graph)
 	assert names == {"A": "Alpha", "B": "Beta"}
+
+
+@pytest.mark.unit
+def test_build_graph_batch_assigns_component_ids_for_disconnected_subgraphs() -> None:
+	from dag_helpers.transform_data.events_to_graphs.transformer import build_graph_batch
+
+	# Two disconnected components: A->B and X->Y.
+	events: list[dict[str, Any]] = [
+		{"event_id": "A", "parent_event_ids": []},
+		{"event_id": "B", "parent_event_ids": ["A"]},
+		{"event_id": "X", "parent_event_ids": []},
+		{"event_id": "Y", "parent_event_ids": ["X"]},
+	]
+	graph = build_graph_batch(events=events, run_id="r1")
+
+	by_id = {n["event_id"]: n for n in graph["nodes"]}
+	cid_ab = by_id["A"]["properties"].get("component_id")
+	cid_b = by_id["B"]["properties"].get("component_id")
+	cid_xy = by_id["X"]["properties"].get("component_id")
+	cid_y = by_id["Y"]["properties"].get("component_id")
+
+	assert cid_ab and cid_xy
+	assert cid_ab == cid_b
+	assert cid_xy == cid_y
+	assert cid_ab != cid_xy
+
+	# Relationships should be tagged with the component they belong to.
+	for rel in graph["relationships"]:
+		assert rel["properties"].get("component_id") in (cid_ab, cid_xy)
